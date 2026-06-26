@@ -6,12 +6,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Kepengurusan\Member;
+use App\Models\Kepanitiaan\EventCommittee;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'avatar',
+        'dietary_restrictions',
+    ];
 
     protected $hidden = [
         'password',
@@ -26,53 +34,23 @@ class User extends Authenticatable
         ];
     }
 
-    public function role()
+    // A user can be a member of the organization (pengurus)
+    public function memberships()
     {
-        return $this->belongsTo(Role::class);
+        return $this->hasMany(Member::class);
     }
 
-    public function division()
+    // A user can be a committee member in events (panitia / volunteer)
+    public function eventCommittees()
     {
-        return $this->belongsTo(Division::class);
+        return $this->hasMany(EventCommittee::class);
     }
 
-    public function rundowns()
+    // Helper: Cek apakah user adalah pengurus di periode tertentu
+    public function isMemberInPeriod($periodId)
     {
-        return $this->hasMany(Rundown::class, 'pic_id');
-    }
-
-    public function verifiedLetters()
-    {
-        return $this->hasMany(Letter::class, 'verified_by');
-    }
-
-    public function uploadedLetters()
-    {
-        return $this->hasMany(Letter::class, 'uploaded_by');
-    }
-
-    public function inventoryLoans()
-    {
-        return $this->hasMany(InventoryLoan::class, 'borrower_id');
-    }
-
-    public function sponsors()
-    {
-        return $this->hasMany(Sponsor::class, 'pic_id');
-    }
-
-    public function uploadedAssets()
-    {
-        return $this->hasMany(DesignAsset::class, 'uploaded_by');
-    }
-
-    public function violationsCommitted()
-    {
-        return $this->hasMany(Violation::class, 'user_id');
-    }
-
-    public function violationsLogged()
-    {
-        return $this->hasMany(Violation::class, 'logged_by');
+        return $this->memberships()->whereHas('division', function($query) use ($periodId) {
+            $query->where('period_id', $periodId);
+        })->exists();
     }
 }

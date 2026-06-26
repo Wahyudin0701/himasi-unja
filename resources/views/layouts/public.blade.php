@@ -23,6 +23,7 @@
             background-size: 32px 32px;
         }
     </style>
+    @stack('styles')
 </head>
 <body class="antialiased text-slate-800 bg-slate-50 flex flex-col min-h-screen">
 
@@ -60,10 +61,10 @@
                     
                     <!-- Dropdown Struktur -->
                     <div class="relative group">
-                        <button class="flex items-center gap-1 hover:text-blurple transition-colors {{ request()->is('struktur*') ? 'text-blurple' : '' }}">
+                        <a href="{{ route('structure') }}" class="flex items-center gap-1 hover:text-blurple transition-colors {{ request()->is('struktur*') ? 'text-blurple' : '' }}">
                             Struktur Organisasi 
                             <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
+                        </a>
                         
                         <!-- Dropdown Menu -->
                         <div class="absolute top-full left-0 mt-4 w-56 bg-white rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
@@ -75,7 +76,7 @@
                                 <a href="{{ route('division.show', 'humas') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Hubungan Masyarakat</a>
                                 <a href="{{ route('division.show', 'ristek') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Riset dan Teknologi</a>
                                 <a href="{{ route('division.show', 'danus') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Dana Usaha</a>
-                                <a href="{{ route('division.show', 'medinfo') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Media dan Informasi</a>
+                                <a href="{{ route('division.show', 'mediasi') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Media dan Informasi</a>
                                 <a href="{{ route('division.show', 'mikat') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Minat dan Bakat</a>
                                 <a href="{{ route('division.show', 'psda') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Pengembangan SDA</a>
                                 <a href="{{ route('division.show', 'sosagma') }}" class="block px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-blurple hover:bg-slate-50 transition-colors">Sosial dan Agama</a>
@@ -161,6 +162,12 @@
                                 Galeri
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('structure') }}" class="text-slate-400 hover:text-indigo-400 text-[15px] transition-colors flex items-center gap-2 group {{ request()->routeIs('structure') ? 'text-indigo-400' : '' }}">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-indigo-400 transition-colors {{ request()->routeIs('structure') ? 'bg-indigo-400' : '' }}"></span>
+                                Struktur
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -192,7 +199,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('division.show', 'medinfo') }}" class="text-slate-400 hover:text-indigo-400 text-[15px] transition-colors flex items-center gap-2 group">
+                            <a href="{{ route('division.show', 'mediasi') }}" class="text-slate-400 hover:text-indigo-400 text-[15px] transition-colors flex items-center gap-2 group">
                                 <span class="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-indigo-400 transition-colors"></span>
                                 Media dan Informasi
                             </a>
@@ -276,16 +283,16 @@
             
             <!-- Mobile Accordion -->
             <div>
-                <button id="mobile-struktur-btn" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-[15px] transition-colors {{ request()->is('struktur*') ? 'bg-indigo-50 text-blurple font-bold' : 'text-slate-700 font-semibold hover:bg-slate-50' }}">
+                <button id="mobile-struktur-btn" class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-[15px] transition-colors {{ request()->is('struktur*') ? 'bg-indigo-50 text-blurple font-bold' : 'text-slate-700 font-semibold hover:bg-slate-50' }} focus:outline-none">
                     Struktur Organisasi
-                    <svg id="mobile-struktur-icon" class="w-4 h-4 transition-transform {{ request()->is('struktur*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="mobile-struktur-menu" class="{{ request()->is('struktur*') ? 'block' : 'hidden' }} pl-6 pr-4 py-2 space-y-1">
+                    <a href="{{ route('structure') }}" class="block px-4 py-2.5 text-[14px] {{ request()->routeIs('structure') ? 'text-blurple font-bold' : 'text-slate-600 hover:text-blurple font-medium' }} rounded-lg hover:bg-slate-50">Lihat Semua Struktur</a>
                     <a href="{{ route('division.show', 'bph') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">BPH</a>
                     <a href="{{ route('division.show', 'humas') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Hubungan Masyarakat</a>
                     <a href="{{ route('division.show', 'ristek') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Riset dan Teknologi</a>
                     <a href="{{ route('division.show', 'danus') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Dana Usaha</a>
-                    <a href="{{ route('division.show', 'medinfo') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Media dan Informasi</a>
+                    <a href="{{ route('division.show', 'mediasi') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Media dan Informasi</a>
                     <a href="{{ route('division.show', 'mikat') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Minat dan Bakat</a>
                     <a href="{{ route('division.show', 'psda') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Pengembangan SDA</a>
                     <a href="{{ route('division.show', 'sosagma') }}" class="block px-4 py-2.5 text-[14px] text-slate-600 hover:text-blurple font-medium rounded-lg hover:bg-slate-50">Sosial dan Agama</a>
@@ -345,7 +352,9 @@
                 if (strukturBtn) {
                     strukturBtn.addEventListener('click', () => {
                         strukturMenu.classList.toggle('hidden');
-                        strukturIcon.classList.toggle('rotate-180');
+                        if (strukturIcon) {
+                            strukturIcon.classList.toggle('rotate-180');
+                        }
                     });
                 }
 
