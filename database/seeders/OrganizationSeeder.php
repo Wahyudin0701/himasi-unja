@@ -26,6 +26,7 @@ class OrganizationSeeder extends Seeder
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
+            'global_role' => 'super_admin',
         ]);
 
         $divisionsData = [
@@ -172,12 +173,28 @@ class OrganizationSeeder extends Seeder
                 // Generate a unique email
                 $email = strtolower(explode(' ', $m['name'])[0]) . rand(100, 999) . '@himasi.unja.ac.id';
                 
+                // Tentukan global_role berdasarkan posisi jabatan
+                $posLower = strtolower($m['position']);
+                $role = 'anggota';
+                if (str_contains($posLower, 'ketua himpunan') || str_contains($posLower, 'wakil ketua himpunan')) {
+                    $role = 'kahim';
+                } elseif (str_contains($posLower, 'sekretaris') && $divData['type'] === 'bph') {
+                    $role = 'kahim';
+                } elseif (str_contains($posLower, 'bendahara') && $divData['type'] === 'bph') {
+                    $role = 'kahim';
+                } elseif (str_contains($posLower, 'ketua divisi')) {
+                    $role = 'kadiv';
+                } elseif (str_contains($posLower, 'wakil ketua divisi')) {
+                    $role = 'kadiv';
+                }
+
                 $user = User::create([
                     'name' => $m['name'],
                     'email' => $email,
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
-                    'avatar' => $m['avatar']
+                    'avatar' => $m['avatar'],
+                    'global_role' => $role,
                 ]);
 
                 // Determine position mapping

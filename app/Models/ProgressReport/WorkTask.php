@@ -13,13 +13,17 @@ class WorkTask extends Model
 {
     protected $fillable = [
         'work_program_id', 'event_id', 'division_id', 'event_division_id',
-        'title', 'description', 'assigned_to', 'assigned_by',
-        'due_date', 'priority', 'status', 'completed_at'
+        'title', 'description', 'attachments', 'assigned_to', 'assigned_by',
+        'sprint_number', 'sprint_start_date', 'sprint_end_date',
+        'due_date', 'priority', 'status', 'completed_at', 'revision_note'
     ];
 
     protected $casts = [
+        'sprint_start_date' => 'date',
+        'sprint_end_date' => 'date',
         'due_date' => 'date',
         'completed_at' => 'datetime',
+        'attachments' => 'array',
     ];
 
     public function workProgram()

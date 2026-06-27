@@ -70,7 +70,20 @@ Route::get('/division/{slug}', function ($slug) {
 })->name('division.show');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $user = \Illuminate\Support\Facades\Auth::user();
+    
+    if ($user->hasActiveKetupelRole()) {
+        return redirect()->route('kepanitiaan.ketupel.dashboard');
+    }
+    if ($user->hasActiveCORole()) {
+        return redirect()->route('kepanitiaan.co.dashboard');
+    }
+    if ($user->hasActiveAnggotaRole()) {
+        return redirect()->route('kepanitiaan.anggota.dashboard');
+    }
+    
+    // Default fallback if no specific dashboard
+    return redirect('/');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

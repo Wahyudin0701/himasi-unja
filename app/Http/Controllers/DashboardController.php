@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Kepengurusan\Period;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user()->load('role', 'division');
-        $roleName = strtolower($user->role->name ?? 'anggota');
+        $user = auth()->user();
+        $activePeriod = Period::where('is_active', true)->first();
         
-        // Sementara memberikan koleksi kosong karena fitur Proker/Tugas belum diimplementasi di database
+        // Data default kosong
         $prokers = collect();
         $members = collect();
         $tasks = collect();
@@ -19,14 +20,44 @@ class DashboardController extends Controller
         $activeProker = 0;
         $totalBudget = 0;
 
-        if (in_array($roleName, ['bph', 'ketua', 'ketua umum', 'wakil ketua', 'sekretaris', 'bendahara'])) {
+        // Cek global_role untuk menentukan dashboard kepengurusan
+        $globalRole = $user->global_role ?? 'anggota';
+
+        if (in_array($globalRole, ['super_admin', 'kahim'])) {
             return view('dashboard.executive', compact(
                 'user', 'prokers', 'totalProker', 'activeProker', 'totalBudget'
             ));
-        } elseif (str_contains($roleName, 'kadiv') || str_contains($roleName, 'kepala')) {
-            return view('dashboard.kadiv', compact('user', 'prokers', 'members'));
-        } else {
-            return view('dashboard.anggota', compact('user', 'tasks'));
         }
+
+        if ($globalRole === 'kadiv') {
+            return view('dashboard.kadiv', compact('user', 'prokers', 'members'));
+        }
+
+        // Fallback: cek dari membership di periode aktif
+        if ($activePeriod) {
+            $membership = $user->memberships()
+                ->whereHas('division', fn($q) => $q->where('period_id', $activePeriod->id))
+                ->with('orgPosition')
+                ->first();
+
+            if ($membership && $membership->orgPosition) {
+                $level = $membership->orgPosition->level;
+                
+                // Level 1-4: BPH (Kahim, Wakahim, Sekretaris, Bendahara)
+                if ($level <= 4) {
+                    return view('dashboard.executive', compact(
+                        'user', 'prokers', 'totalProker', 'activeProker', 'totalBudget'
+                    ));
+                }
+
+                // Level 5: Kadiv
+                if ($level === 5) {
+                    return view('dashboard.kadiv', compact('user', 'prokers', 'members'));
+                }
+            }
+        }
+
+        // Default: dashboard anggota biasa
+        return view('dashboard.anggota', compact('user', 'tasks'));
     }
 }

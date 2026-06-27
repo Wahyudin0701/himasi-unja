@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             OrgPositionSeeder::class,
             CommitteeRoleSeeder::class,
             OrganizationSeeder::class,
+            DiesNatalisSeeder::class,
         ]);
     }
 }

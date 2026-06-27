@@ -17,13 +17,19 @@ return new class extends Migration
             
             $table->string('title');
             $table->text('description')->nullable();
+            $table->json('attachments')->nullable();
+            $table->text('revision_note')->nullable();
             
             $table->foreignId('assigned_to')->constrained('users')->cascadeOnDelete();
             $table->foreignId('assigned_by')->constrained('users')->cascadeOnDelete();
             
+            $table->unsignedInteger('sprint_number')->nullable();
+            $table->date('sprint_start_date')->nullable();
+            $table->date('sprint_end_date')->nullable();
+            
             $table->date('due_date')->nullable();
             $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
-            $table->enum('status', ['todo', 'in_progress', 'completed', 'revision'])->default('todo');
+            $table->enum('status', ['todo', 'waiting', 'revisi', 'completed'])->default('todo');
             
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

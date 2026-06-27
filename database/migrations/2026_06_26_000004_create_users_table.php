@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->text('dietary_restrictions')->nullable();
+            $table->enum('global_role', ['super_admin', 'kahim', 'kadiv', 'anggota'])->default('anggota');
             $table->rememberToken();
             $table->timestamps();
         });
