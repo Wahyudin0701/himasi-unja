@@ -54,6 +54,29 @@ class KetupelDashboardController extends Controller
     }
 
     /**
+     * Manajemen Panitia — otomatis mengarah ke halaman kelola tim
+     * dari event aktif yang dipegang Ketupel.
+     */
+    public function manajemenPanitia()
+    {
+        $user = auth()->user();
+
+        // Cari event aktif di mana user adalah Ketupel
+        $assignment = $user->eventCommittees()
+            ->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))
+            ->whereHas('event', fn($q) => $q->whereIn('status', ['planning', 'preparation', 'ongoing']))
+            ->with('event')
+            ->first();
+
+        if (!$assignment) {
+            return redirect()->route('kepanitiaan.ketupel.dashboard')
+                ->with('error', 'Anda tidak memiliki acara aktif saat ini.');
+        }
+
+        return redirect()->route('kepanitiaan.ketupel.manage-team', $assignment->event);
+    }
+
+    /**
      * Halaman manajemen tim kepanitiaan untuk satu event.
      * Hanya bisa diakses oleh Ketupel/Wakil di event tersebut.
      */
@@ -78,7 +101,14 @@ class KetupelDashboardController extends Controller
             'committees.division',
         ]);
 
-        $allUsers = \App\Models\User::orderBy('name')->get();
+        $allUsers = \App\Models\User::with(['memberships.division'])
+            ->whereNotIn('global_role', ['super_admin', 'pembina', 'dp', 'kahim', 'wakahim', 'sekretaris', 'bendahara'])
+            ->whereDoesntHave('eventCommittees', function ($query) use ($event) {
+                $query->where('event_id', $event->id);
+            })
+            ->orderBy('name')
+            ->get();
+        
         $roles = \App\Models\Kepanitiaan\CommitteeRole::all();
 
         return view('kepanitiaan.ketupel.manage_team', compact('user', 'event', 'allUsers', 'roles'));
@@ -115,8 +145,8 @@ class KetupelDashboardController extends Controller
             'user_id' => 'nullable|exists:users,id',
             
             // Mode 2: User baru
-            'name' => 'required_without:user_id|string|max:255',
-            'email' => 'required_without:user_id|email|max:255',
+            'name' => 'required_without:user_id|nullable|string|max:255',
+            'email' => 'required_without:user_id|nullable|email|max:255',
         ]);
 
         try {
@@ -179,6 +209,67 @@ class KetupelDashboardController extends Controller
     }
 
     /**
+     * Mengganti anggota tim yang sudah ada.
+     */
+    public function updateTeamMember(Request $request, Event $event, EventCommittee $committee)
+    {
+        // Pastikan user adalah Ketupel di event ini
+        $user = auth()->user();
+        if (!$user->eventCommittees()->where('event_id', $event->id)->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))->exists()) {
+            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
+        }
+
+        $validated = $request->validate([
+            // Mode 1: User existing
+            'user_id' => 'nullable|exists:users,id',
+            // Mode 2: User baru
+            'name' => 'required_without:user_id|nullable|string|max:255',
+            'email' => 'required_without:user_id|nullable|email|max:255',
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $targetUser = null;
+
+            if (!empty($validated['user_id'])) {
+                $targetUser = \App\Models\User::findOrFail($validated['user_id']);
+            } else {
+                $targetUser = \App\Models\User::firstOrCreate(
+                    ['email' => $validated['email']],
+                    [
+                        'name' => $validated['name'],
+                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'global_role' => 'anggota',
+                    ]
+                );
+            }
+
+            // Validasi: User tidak boleh punya role ganda di 1 event
+            $alreadyAssigned = EventCommittee::where('event_id', $event->id)
+                ->where('user_id', $targetUser->id)
+                ->where('id', '!=', $committee->id)
+                ->exists();
+
+            if ($alreadyAssigned) {
+                return back()->with('error', "{$targetUser->name} sudah terdaftar di kepanitiaan ini.");
+            }
+
+            $committee->update([
+                'user_id' => $targetUser->id,
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return back()->with('success', "Anggota berhasil diganti menjadi {$targetUser->name}.");
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return back()->with('error', 'Gagal mengganti anggota tim: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Menghapus anggota tim.
      */
     public function removeTeamMember(Event $event, EventCommittee $committee)
@@ -198,5 +289,173 @@ class KetupelDashboardController extends Controller
         $committee->delete();
 
         return back()->with('success', "{$committeeName} berhasil dihapus dari kepanitiaan.");
+    }
+
+    /**
+     * Menampilkan halaman Tambah Divisi.
+     */
+    public function createDivision(Event $event)
+    {
+        // Pastikan user adalah Ketupel di event ini
+        $user = auth()->user();
+        if (!$user->eventCommittees()->where('event_id', $event->id)->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))->exists()) {
+            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
+        }
+
+        $allUsers = \App\Models\User::with(['memberships.division'])
+            ->whereNotIn('global_role', ['super_admin', 'pembina', 'dp', 'kahim', 'wakahim', 'sekretaris', 'bendahara'])
+            ->whereDoesntHave('eventCommittees', function ($query) use ($event) {
+                $query->where('event_id', $event->id);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('kepanitiaan.ketupel.create_division', compact('event', 'allUsers'));
+    }
+
+    /**
+     * Menambahkan Divisi Kepanitiaan.
+     */
+    public function storeDivision(Request $request, Event $event)
+    {
+        // Pastikan user adalah Ketupel di event ini
+        $user = auth()->user();
+        if (!$user->eventCommittees()->where('event_id', $event->id)->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))->exists()) {
+            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            
+            // Validasi CO
+            'co_type' => 'required|in:existing,new',
+            'co_user_id' => 'required_if:co_type,existing|nullable|exists:users,id',
+            'co_name' => 'required_if:co_type,new|nullable|string|max:255',
+            'co_email' => 'required_if:co_type,new|nullable|email|max:255',
+
+            // Validasi Anggota (Array)
+            'anggota' => 'required|array|min:1',
+            'anggota.*.type' => 'required|in:existing,new',
+            'anggota.*.user_id' => 'required_if:anggota.*.type,existing|nullable|exists:users,id',
+            'anggota.*.name' => 'required_if:anggota.*.type,new|nullable|string|max:255',
+            'anggota.*.email' => 'required_if:anggota.*.type,new|nullable|email|max:255',
+        ]);
+
+        $userIds = [];
+        if ($validated['co_type'] === 'existing' && !empty($validated['co_user_id'])) {
+            $userIds[] = $validated['co_user_id'];
+        }
+        foreach ($validated['anggota'] as $anggota) {
+            if ($anggota['type'] === 'existing' && !empty($anggota['user_id'])) {
+                $userIds[] = $anggota['user_id'];
+            }
+        }
+
+        if (count($userIds) !== count(array_unique($userIds))) {
+            return back()->withInput()->with('error', 'Tidak boleh ada anggota terdaftar yang dipilih lebih dari satu kali dalam form yang sama.');
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            // 1. Buat Divisi
+            $division = \App\Models\Kepanitiaan\EventDivision::create([
+                'event_id' => $event->id,
+                'name' => $validated['name'],
+                'slug' => \Illuminate\Support\Str::slug($validated['name']),
+                'sort_order' => \App\Models\Kepanitiaan\EventDivision::where('event_id', $event->id)->max('sort_order') + 1,
+            ]);
+
+            $roles = \App\Models\Kepanitiaan\CommitteeRole::all();
+            $coRole = $roles->where('slug', 'co-divisi')->first();
+            $anggotaRole = $roles->where('slug', 'anggota')->first();
+
+            // 2. Buat / Assign CO
+            if ($validated['co_type'] === 'existing') {
+                $coUser = \App\Models\User::findOrFail($validated['co_user_id']);
+            } else {
+                $coUser = \App\Models\User::firstOrCreate(
+                    ['email' => $validated['co_email']],
+                    [
+                        'name' => $validated['co_name'],
+                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'global_role' => 'anggota',
+                    ]
+                );
+            }
+
+            EventCommittee::create([
+                'event_id' => $event->id,
+                'user_id' => $coUser->id,
+                'committee_role_id' => $coRole->id,
+                'event_division_id' => $division->id,
+            ]);
+
+            // 3. Buat / Assign Anggota
+            foreach ($validated['anggota'] as $anggotaData) {
+                // Konversi string kosong jadi null
+                $aType = $anggotaData['type'] ?? 'existing';
+                $aUserId = $anggotaData['user_id'] ?? null;
+                if ($aUserId === '') $aUserId = null;
+                $aEmail = $anggotaData['email'] ?? null;
+                $aName = $anggotaData['name'] ?? null;
+
+                // Lewati jika kosong (misal salah kirim)
+                if ($aType === 'existing' && !$aUserId) continue;
+                if ($aType === 'new' && !$aEmail) continue;
+
+                if ($aType === 'existing') {
+                    $angUser = \App\Models\User::findOrFail($aUserId);
+                } else {
+                    $angUser = \App\Models\User::firstOrCreate(
+                        ['email' => $aEmail],
+                        [
+                            'name' => $aName,
+                            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                            'global_role' => 'anggota',
+                        ]
+                    );
+                }
+
+                EventCommittee::create([
+                    'event_id' => $event->id,
+                    'user_id' => $angUser->id,
+                    'committee_role_id' => $anggotaRole->id,
+                    'event_division_id' => $division->id,
+                ]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+            return redirect()->route('kepanitiaan.ketupel.manage-team', $event)->with('success', "Divisi {$validated['name']} beserta anggotanya berhasil ditambahkan.");
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return back()->with('error', 'Gagal menambahkan divisi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menghapus Divisi Kepanitiaan.
+     */
+    public function destroyDivision(Event $event, \App\Models\Kepanitiaan\EventDivision $division)
+    {
+        // Pastikan user adalah Ketupel di event ini
+        $user = auth()->user();
+        if (!$user->eventCommittees()->where('event_id', $event->id)->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))->exists()) {
+            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
+        }
+
+        if ($division->event_id !== $event->id) {
+            abort(404);
+        }
+
+        if ($division->name === 'Tim Inti') {
+            return back()->with('error', 'Tim Inti tidak dapat dihapus!');
+        }
+
+        $divisionName = $division->name;
+        $division->delete();
+
+        return back()->with('success', "Divisi {$divisionName} berhasil dihapus.");
     }
 }

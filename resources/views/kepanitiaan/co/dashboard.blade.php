@@ -40,6 +40,16 @@
                 sprint_start_date: '{{ now()->format('Y-m-d') }}',
                 sprint_end_date: '{{ now()->addDays(7)->format('Y-m-d') }}',
                 status: 'todo',
+                filterMember: '',
+                filterStatus: '',
+                filterPriority: '',
+                
+                matchesFilters(memberId, status, priority) {
+                    if (this.filterMember && this.filterMember != memberId) return false;
+                    if (this.filterStatus && this.filterStatus != status) return false;
+                    if (this.filterPriority && this.filterPriority != priority) return false;
+                    return true;
+                },
 
                 openCreateModal() {
                     this.editMode = false;
@@ -81,11 +91,16 @@
              
             <!-- Sprint Tasks Board Header -->
             <div>
-                <div class="flex items-center justify-between py-5 border-t border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between py-5 border-t border-slate-200 gap-4">
                     <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-kanban text-brand-500"></i> Papan Sprint</h3>
-                    <a href="{{ route('kepanitiaan.co.tasks.create', ['event_id' => $assignment->event_id, 'event_division_id' => $assignment->event_division_id]) }}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 shadow-brand-500/30">
-                        <i class="ph ph-plus"></i> Tambah Tugas
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('kepanitiaan.co.sprints.index') }}" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2">
+                            <i class="ph ph-calendar-check"></i> Pengaturan Sprint
+                        </a>
+                        <a href="{{ route('kepanitiaan.co.tasks.create', ['event_id' => $assignment->event_id, 'event_division_id' => $assignment->event_division_id]) }}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 shadow-brand-500/30">
+                            <i class="ph ph-plus"></i> Tambah Tugas
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Division Header -->
@@ -114,6 +129,37 @@
                 </div>
 
                 @if($groupedTasks->count() > 0)
+                    <!-- Filters -->
+                    <div class="mb-6 flex flex-col gap-3">
+                        <div class="w-full bg-white border border-slate-200 rounded-xl p-5 sm:px-6 flex flex-col lg:flex-row gap-4 lg:gap-6 shadow-sm lg:items-center">
+                            <div class="flex items-center gap-2 shrink-0 border-b lg:border-b-0 pb-2 lg:pb-0 border-slate-100">
+                                <i class="ph-fill ph-funnel text-slate-400"></i>
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-widest">Filter:</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full">
+                                <select x-model="filterMember" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                    <option value="">Semua Anggota</option>
+                                    @foreach($members as $member)
+                                        <option value="{{ $member->user->id }}">{{ $member->user->name }}</option>
+                                    @endforeach
+                                </select>
+                                <select x-model="filterStatus" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                    <option value="">Semua Status</option>
+                                    <option value="todo">To Do</option>
+                                    <option value="waiting">Menunggu Review</option>
+                                    <option value="revisi">Revisi</option>
+                                    <option value="completed">Selesai</option>
+                                </select>
+                                <select x-model="filterPriority" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                    <option value="">Semua Prioritas</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                         
                         <!-- Global Table Headers (Desktop Only) -->
@@ -141,7 +187,7 @@
                         <!-- Sprints Data -->
                         <div class="divide-y divide-slate-200 bg-slate-50/20">
                             @foreach($groupedTasks as $sprintNumber => $tasks)
-                                <div class="flex flex-col lg:flex-row hover:bg-white transition-colors group/row">
+                                <div class="flex flex-col lg:flex-row hover:bg-white transition-colors group/row lg:min-h-[150px]">
                                     
                                     <!-- Rotated Sprint Header -->
                                     <div class="lg:w-16 bg-brand-600 text-white flex items-center justify-center shrink-0 border-b lg:border-b-0 lg:border-r border-slate-200 py-3 lg:py-0 overflow-hidden">
@@ -168,7 +214,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->where('status', 'todo') as $task)
-                                                <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-600 shrink-0">
@@ -198,7 +244,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->whereIn('status', ['waiting', 'revisi']) as $task)
-                                                <div class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-[9px] font-bold shrink-0">
@@ -235,7 +281,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->where('status', 'completed') as $task)
-                                                <div class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-[9px] font-bold shrink-0">

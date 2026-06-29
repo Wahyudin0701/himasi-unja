@@ -44,6 +44,40 @@ CREATE TABLE `certificates` (
   CONSTRAINT `certificates_guest_id_foreign` FOREIGN KEY (`guest_id`) REFERENCES `guests` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `channel_members`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `channel_members` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `channel_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `channel_members_channel_id_user_id_unique` (`channel_id`,`user_id`),
+  KEY `channel_members_user_id_foreign` (`user_id`),
+  CONSTRAINT `channel_members_channel_id_foreign` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `channel_members_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `channels`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `channels` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('pembina_pimpinan','dp_pimpinan','pimpinan_kadiv','kadiv_anggota') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `division_id` bigint unsigned DEFAULT NULL,
+  `period_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `channels_division_id_foreign` (`division_id`),
+  KEY `channels_period_id_foreign` (`period_id`),
+  CONSTRAINT `channels_division_id_foreign` FOREIGN KEY (`division_id`) REFERENCES `divisions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `channels_period_id_foreign` FOREIGN KEY (`period_id`) REFERENCES `periods` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `committee_roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -107,7 +141,7 @@ CREATE TABLE `divisions` (
   `color` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `text_color` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
-  `type` enum('bph','divisi') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'divisi',
+  `type` enum('pembina','dp','bph','divisi') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'divisi',
   `base_points` int NOT NULL DEFAULT '100',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -326,6 +360,7 @@ CREATE TABLE `members` (
   `user_id` bigint unsigned NOT NULL,
   `division_id` bigint unsigned NOT NULL,
   `org_position_id` bigint unsigned NOT NULL,
+  `sub_division_id` bigint unsigned DEFAULT NULL,
   `position_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `joined_at` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -334,9 +369,45 @@ CREATE TABLE `members` (
   UNIQUE KEY `members_user_id_division_id_unique` (`user_id`,`division_id`),
   KEY `members_division_id_foreign` (`division_id`),
   KEY `members_org_position_id_foreign` (`org_position_id`),
+  KEY `members_sub_division_id_foreign` (`sub_division_id`),
   CONSTRAINT `members_division_id_foreign` FOREIGN KEY (`division_id`) REFERENCES `divisions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `members_org_position_id_foreign` FOREIGN KEY (`org_position_id`) REFERENCES `org_positions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `members_sub_division_id_foreign` FOREIGN KEY (`sub_division_id`) REFERENCES `sub_divisions` (`id`) ON DELETE SET NULL,
   CONSTRAINT `members_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `message_reads`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_reads` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `message_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `read_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `message_reads_message_id_user_id_unique` (`message_id`,`user_id`),
+  KEY `message_reads_user_id_foreign` (`user_id`),
+  CONSTRAINT `message_reads_message_id_foreign` FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `message_reads_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `messages` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `channel_id` bigint unsigned NOT NULL,
+  `sender_id` bigint unsigned NOT NULL,
+  `body` text COLLATE utf8mb4_unicode_ci,
+  `attachment_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `attachment_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `messages_sender_id_foreign` (`sender_id`),
+  KEY `messages_channel_id_created_at_index` (`channel_id`,`created_at`),
+  CONSTRAINT `messages_channel_id_foreign` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `messages_sender_id_foreign` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `migrations`;
@@ -467,6 +538,21 @@ CREATE TABLE `sponsors` (
   CONSTRAINT `sponsors_pic_id_foreign` FOREIGN KEY (`pic_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `sub_divisions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sub_divisions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `division_id` bigint unsigned NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sub_divisions_division_id_slug_unique` (`division_id`,`slug`),
+  CONSTRAINT `sub_divisions_division_id_foreign` FOREIGN KEY (`division_id`) REFERENCES `divisions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -474,16 +560,20 @@ CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nim` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `angkatan` varchar(4) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `avatar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `dietary_restrictions` text COLLATE utf8mb4_unicode_ci,
-  `global_role` enum('super_admin','kahim','kadiv','anggota') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'anggota',
+  `global_role` enum('super_admin','pembina','dp','kahim','wakahim','sekretaris','bendahara','kadiv','anggota') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'anggota',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `users_email_unique` (`email`)
+  UNIQUE KEY `users_email_unique` (`email`),
+  UNIQUE KEY `users_nim_unique` (`nim`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `violations`;
@@ -511,17 +601,21 @@ CREATE TABLE `work_programs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `division_id` bigint unsigned NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pic_id` bigint unsigned DEFAULT NULL,
   `type` enum('event','non_event') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'non_event',
   `description` text COLLATE utf8mb4_unicode_ci,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `budget_plan` decimal(15,2) DEFAULT NULL,
-  `status` enum('draft','planned','in_progress','completed','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `status` enum('planning','ongoing','completed','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'planning',
+  `cancellation_reason` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `work_programs_division_id_foreign` (`division_id`),
-  CONSTRAINT `work_programs_division_id_foreign` FOREIGN KEY (`division_id`) REFERENCES `divisions` (`id`) ON DELETE CASCADE
+  KEY `work_programs_pic_id_foreign` (`pic_id`),
+  CONSTRAINT `work_programs_division_id_foreign` FOREIGN KEY (`division_id`) REFERENCES `divisions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `work_programs_pic_id_foreign` FOREIGN KEY (`pic_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `work_tasks`;
@@ -595,3 +689,7 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (22,'2026_06_26_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (23,'2026_06_26_000021_create_violations_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (24,'2026_06_26_000022_create_medical_inventories_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (25,'2026_06_26_190545_create_division_sprints_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (26,'2026_06_28_000001_create_channels_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (27,'2026_06_28_000002_create_channel_members_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (28,'2026_06_28_000003_create_messages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (29,'2026_06_28_000004_create_message_reads_table',1);

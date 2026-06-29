@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
             $table->foreignId('org_position_id')->constrained('org_positions')->cascadeOnDelete();
+            $table->foreignId('sub_division_id')->nullable()->constrained('sub_divisions')->nullOnDelete();
             $table->string('position_title')->nullable(); // custom: "Ketua Bidang Riset"
             $table->date('joined_at')->nullable();
             $table->timestamps();

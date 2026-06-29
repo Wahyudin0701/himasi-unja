@@ -2,14 +2,17 @@
 
 @section('title', 'Detail Tugas')
 
-@section('content')
-    <div x-data="{ revisiModalOpen: false, acceptModalOpen: false }">
+@section('breadcrumbs')
+    <span class="text-slate-700">Program Kerja Non-Event</span>
+@endsection
 
+@section('content')
 
 
     <div class="flex items-center justify-end mb-8">
-        <a href="{{ route('kepanitiaan.co.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5">
-            <i class="ph-bold ph-caret-left text-base"></i> Kembali
+        <a href="{{ route('kepengurusan.anggota.proker.kanban') }}" class="text-sm font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1.5 transition-colors">
+            <i class="ph-bold ph-caret-left text-base"></i>
+            Kembali
         </a>
     </div>
 
@@ -43,26 +46,28 @@
                     </div>
                     <div class="md:flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tenggat Waktu</p>
-                        <p class="text-sm font-bold text-slate-700">
-                            @php
-                                $dueDate = $task->due_date ? \Carbon\Carbon::parse($task->due_date)->startOfDay() : null;
-                                $today = now()->startOfDay();
-                                if (!$dueDate) {
-                                    $diffStr = '-';
-                                } else {
-                                    $diff = $today->diffInDays($dueDate, false);
-                                    if ($diff == 0) $diffStr = 'Hari ini';
-                                    elseif ($diff == 1) $diffStr = 'Besok';
-                                    elseif ($diff > 0) $diffStr = $diff . ' Hari lagi';
-                                    else $diffStr = 'Terlewat ' . abs($diff) . ' hari';
+                        @php
+                            $dueDate = $task->due_date ? \Carbon\Carbon::parse($task->due_date)->startOfDay() : null;
+                            $today = now()->startOfDay();
+                            $isOverdue = false;
+                            if (!$dueDate) {
+                                $diffStr = '-';
+                            } else {
+                                $diff = $today->diffInDays($dueDate, false);
+                                if ($diff == 0) $diffStr = 'Hari ini';
+                                elseif ($diff == 1) $diffStr = 'Besok';
+                                elseif ($diff > 0) $diffStr = $diff . ' Hari lagi';
+                                else {
+                                    $diffStr = 'Terlewat ' . abs($diff) . ' hari';
+                                    if ($task->status !== 'completed' && $task->status !== 'done') {
+                                        $isOverdue = true;
+                                    }
                                 }
-                            @endphp
+                            }
+                        @endphp
+                        <p class="text-sm font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-700' }}">
                             {{ $diffStr }}
                         </p>
-                    </div>
-                    <div class="md:flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sprint</p>
-                        <p class="text-sm font-bold text-slate-700">Sprint {{ $task->sprint_number }}</p>
                     </div>
                 </div>
             </div>
@@ -70,7 +75,7 @@
             <div class="mb-8">
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest mb-3">Deskripsi Tugas</h3>
                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5">
-                    <p class="text-slate-700 whitespace-pre-wrap leading-relaxed">{{ $task->description ?: 'Tidak ada deskripsi yang disertakan.' }}</p>
+                    <p class="text-slate-700 whitespace-pre-wrap leading-relaxed">{{ $task->description ?: 'Tidak ada deskripsi yang disertakan untuk tugas ini.' }}</p>
                 </div>
             </div>
 
@@ -124,10 +129,97 @@
             </div>
             @endif
 
+            @if(in_array($task->status, ['todo', 'revisi']))
+            <div class="border-t border-slate-200 pt-8 mt-8">
+                
+                @if($task->status === 'revisi' && $task->revision_note)
+                <div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-4 items-start">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="ph-fill ph-warning-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-900 mb-1">Catatan Revisi dari Kadiv</h4>
+                        <p class="text-sm text-amber-700 leading-relaxed">{{ $task->revision_note }}</p>
+                    </div>
+                </div>
+                @endif
+
+                <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Ajukan Progres</h3>
+                        <p class="text-sm text-slate-600">Sertakan catatan progres beserta lampiran (jika ada) untuk dilaporkan ke Kadiv.</p>
+                    </div>
+                    
+                    <form action="{{ route('kepengurusan.anggota.proker.submit-review', $task) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" value="waiting">
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label for="catatan" class="block text-sm font-bold text-slate-700 mb-1.5">Catatan Progres <span class="text-rose-500">*</span></label>
+                                <textarea name="catatan" id="catatan" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400" placeholder="Tuliskan detail progres atau kendala yang dialami..." required></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{ files: [1], links: [1] }">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-sm font-bold text-slate-700">Lampiran File (Opsional)</label>
+                                        <button type="button" @click="files.push(files.length + 1)" class="text-xs font-bold text-blue-600 hover:text-blue-700">
+                                            + Tambah File
+                                        </button>
+                                    </div>
+                                    <template x-for="(file, index) in files" :key="index">
+                                        <div class="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex flex-col gap-2">
+                                            <input type="text" name="file_names[]" class="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2" placeholder="Nama File (opsional)">
+                                            <div class="flex items-center gap-2">
+                                                <input type="file" name="files[]" class="flex-1 min-w-0 bg-white border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 transition-all file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                                <button type="button" x-show="files.length > 1" @click="files.splice(index, 1)" class="p-2.5 text-rose-500 hover:text-rose-700 transition-colors bg-white rounded-lg shadow-sm border border-slate-200 shrink-0">
+                                                    <i class="ph-bold ph-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <p class="text-[10px] text-slate-500 mt-1.5">Maks. ukuran 5MB (PDF, DOCX, ZIP, JPG, PNG)</p>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-sm font-bold text-slate-700">Tautan Terkait (Opsional)</label>
+                                        <button type="button" @click="links.push(links.length + 1)" class="text-xs font-bold text-blue-600 hover:text-blue-700">
+                                            + Tambah Tautan
+                                        </button>
+                                    </div>
+                                    <template x-for="(link, index) in links" :key="index">
+                                        <div class="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex flex-col gap-2">
+                                            <input type="text" name="link_names[]" class="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2" placeholder="Nama Tautan (opsional)">
+                                            <div class="flex items-center gap-2">
+                                                <input type="url" name="links[]" class="flex-1 min-w-0 bg-white border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 transition-all" placeholder="https://...">
+                                                <button type="button" x-show="links.length > 1" @click="links.splice(index, 1)" class="p-2.5 text-rose-500 hover:text-rose-700 transition-colors bg-white rounded-lg shadow-sm border border-slate-200 shrink-0">
+                                                    <i class="ph-bold ph-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex items-center justify-end">
+                            <button type="submit" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-blue-500/30 flex items-center justify-center gap-2 hover:shadow-md">
+                                <i class="ph-fill ph-paper-plane-tilt text-lg"></i>
+                                Kirim Progres
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
+
             @if($latestReport)
             <div class="border-t border-slate-200 pt-8 mt-8">
                 <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <i class="ph-fill ph-paper-plane-tilt text-blue-500"></i> Laporan Progres Anggota
+                    <i class="ph-fill ph-paper-plane-tilt text-blue-500"></i> Progres yang Diajukan
                 </h3>
                 <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
                     <div class="mb-6">
@@ -179,104 +271,9 @@
                         </div>
                         @endif
                     @endif
-                    
-                    @if($task->status === 'waiting')
-                        <div class="mt-6 pt-6 border-t border-blue-200 flex items-center justify-end gap-3">
-                            <div>
-                                <button type="button" @click="revisiModalOpen = true" class="px-6 py-2.5 bg-white hover:bg-amber-50 text-amber-600 border border-amber-200 hover:border-amber-400 font-bold text-sm rounded-xl transition-all shadow-sm flex items-center gap-2">
-                                    <i class="ph-bold ph-arrow-counter-clockwise text-lg"></i> Revisi
-                                </button>
-                            </div>
-                            <div>
-                                <button type="button" @click="acceptModalOpen = true" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2">
-                                    <i class="ph-bold ph-check-circle text-lg"></i> Accept
-                                </button>
-                            </div>
-                        </div>
-                    @endif
                 </div>
             </div>
             @endif
-
-            @if($task->status !== 'waiting' && $task->status !== 'completed')
-            <div class="mt-8 pt-8 border-t border-slate-200 flex justify-end">
-                <a href="{{ route('kepanitiaan.co.tasks.edit', $task) }}" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all shadow-md flex items-center gap-2">
-                    <i class="ph-bold ph-pencil-simple"></i> Edit Tugas
-                </a>
-            </div>
-            @endif
-        </div>
-        <!-- Modal Revisi -->
-        <div x-show="revisiModalOpen" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center px-4">
-            <div x-show="revisiModalOpen" x-transition.opacity class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="revisiModalOpen = false"></div>
-            
-            <div x-show="revisiModalOpen" 
-                 x-transition.scale.95 
-                 x-transition.opacity 
-                 class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
-                 
-                 <form action="{{ route('kepanitiaan.co.tasks.review', $task) }}" method="POST">
-                     @csrf
-                     <input type="hidden" name="status" value="revisi">
-                     
-                     <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                         <div>
-                             <h3 class="text-lg font-bold text-slate-900">Catatan Revisi</h3>
-                             <p class="text-xs text-slate-500 mt-1">Berikan alasan atau detail revisi untuk anggota.</p>
-                         </div>
-                         <button type="button" @click="revisiModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
-                             <i class="ph ph-x"></i>
-                         </button>
-                     </div>
-
-                     <div class="p-6">
-                         <div>
-                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Catatan</label>
-                             <textarea name="revision_note" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all text-sm outline-none resize-none" placeholder="Tuliskan catatan revisi di sini..." required></textarea>
-                         </div>
-                     </div>
-                     
-                     <div class="px-6 py-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-                         <button type="button" @click="revisiModalOpen = false" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 transition-all border border-slate-200">
-                             Batal
-                         </button>
-                         <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-sm flex items-center gap-2">
-                             <i class="ph-bold ph-paper-plane-tilt"></i> Kirim Revisi
-                         </button>
-                     </div>
-                 </form>
-            </div>
-        </div>
-
-        <!-- Modal Accept -->
-        <div x-show="acceptModalOpen" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center px-4">
-            <div x-show="acceptModalOpen" x-transition.opacity class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="acceptModalOpen = false"></div>
-            
-            <div x-show="acceptModalOpen" 
-                 x-transition.scale.95 
-                 x-transition.opacity 
-                 class="relative bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden text-center p-8">
-                 
-                 <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-5">
-                     <i class="ph-fill ph-check-circle text-3xl"></i>
-                 </div>
-                 
-                 <h3 class="text-xl font-bold text-slate-900 mb-2">Terima Progres?</h3>
-                 <p class="text-sm text-slate-500 mb-8">Dengan menerima progres ini, tugas akan ditandai sebagai selesai dan tidak bisa direvisi lagi.</p>
-                 
-                 <div class="flex gap-3">
-                     <button type="button" @click="acceptModalOpen = false" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
-                         Batal
-                     </button>
-                     <form action="{{ route('kepanitiaan.co.tasks.review', $task) }}" method="POST" class="flex-1">
-                         @csrf
-                         <input type="hidden" name="status" value="completed">
-                         <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">
-                             Ya, Terima
-                         </button>
-                     </form>
-                 </div>
-            </div>
         </div>
     </div>
 @endsection

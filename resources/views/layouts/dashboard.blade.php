@@ -88,6 +88,14 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        /* Custom Gradient Text */
+        .gradient-custom-text {
+            background: linear-gradient(to right, #8b5cf6, #06b6d4, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     </style>
 
     @stack('styles')
@@ -124,28 +132,178 @@
 
             <!-- Overview -->
             <div>
-                <p class="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Menu Utama</p>
+                @php
+                    $menuTitle = 'Menu Utama';
+                    if (auth()->check() && in_array(auth()->user()->global_role, ['kadiv', 'anggota'])) {
+                        $activePeriod = \App\Models\Kepengurusan\Period::where('is_active', true)->first();
+                        if ($activePeriod) {
+                            $membership = auth()->user()->memberships()->whereHas('division', function($q) use ($activePeriod) {
+                                $q->where('period_id', $activePeriod->id);
+                            })->with(['division', 'orgPosition'])->first();
+                            
+                            if ($membership && $membership->division) {
+                                $jabatan = $membership->orgPosition ? $membership->orgPosition->name : (auth()->user()->global_role === 'kadiv' ? 'Kadiv' : 'Anggota');
+                                $prefix = 'Menu Utama';
+                                
+                                if (strtolower($jabatan) === 'ketua bidang') {
+                                    $jabatan = 'Kabid';
+                                    $prefix = 'Menu';
+                                } elseif (strtolower($jabatan) === 'ketua divisi') {
+                                    $jabatan = 'Kadiv';
+                                    $prefix = 'Menu';
+                                }
+                                
+                                $menuTitle = $prefix . ' ' . $jabatan . ' Divisi ' . $membership->division->name;
+                            }
+                        }
+                    }
+                @endphp
+                <p class="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">{{ $menuTitle }}</p>
                 <div class="space-y-1.5">
-                    <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('dashboard', 'kepanitiaan.*') && !request()->routeIs('kepanitiaan.anggota.divisi') && !request()->routeIs('kepanitiaan.co.sprints.*') ? 'nav-active' : '' }}">
+                    @if(auth()->user()->global_role !== 'super_admin')
+                    <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('dashboard', 'kepanitiaan.*', 'kepengurusan.kadiv.dashboard', 'kepengurusan.anggota.dashboard') && !request()->routeIs('kepanitiaan.co.progres.divisi') && !request()->routeIs('kepanitiaan.ketupel.progres.divisi') && !request()->routeIs('kepanitiaan.ketupel.manajemen-panitia') && !request()->routeIs('kepanitiaan.ketupel.manage-team') && !request()->routeIs('kepanitiaan.co.sprints.*') ? 'nav-active' : '' }}">
                         <i class="ph-fill ph-squares-four nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                         Dashboard
                     </a>
+                    @endif
+                    
+                    @if(auth()->user()->global_role !== 'super_admin' && auth()->user()->global_role !== 'kadiv' && auth()->user()->global_role !== 'anggota')
+                    <a href="{{ route('kepengurusan.directory.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.directory.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-address-book nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Daftar Pengurus
+                    </a>
+                    @endif
 
-                    @if(auth()->user()->hasActiveCORole() || auth()->user()->hasActiveKetupelRole())
-                    <a href="{{ route('kepanitiaan.anggota.divisi') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.anggota.divisi') ? 'nav-active' : '' }}">
+                    @if(auth()->user()->global_role === 'anggota')
+                    <a href="{{ route('kepengurusan.anggota.proker.kanban') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.anggota.proker.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-kanban nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Kanban Proker
+                    </a>
+                    @endif
+
+                    @if(auth()->user()->global_role === 'kadiv')
+                    <a href="{{ route('kepengurusan.kadiv.proker.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.kadiv.proker.*') && !request()->routeIs('kepengurusan.kadiv.proker.review.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-clipboard-text nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Program Kerja
+                    </a>
+                    <a href="{{ route('kepengurusan.kadiv.proker.review.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.kadiv.proker.review.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-check-circle nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Reviu Proker
+                    </a>
+                    <a href="{{ route('kepengurusan.kadiv.progres-divisi') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.kadiv.progres-divisi') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-chart-line-up nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Progres Divisi
+                    </a>
+                    @endif
+
+                    @if(auth()->user()->global_role === 'super_admin')
+                    <a href="{{ route('super_admin.dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('super_admin.dashboard') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-shield-check nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Dasbor Super Admin
+                    </a>
+                    <a href="{{ route('super_admin.periods.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('super_admin.periods.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-calendar-blank nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Manajemen Periode
+                    </a>
+                    <a href="{{ route('super_admin.members.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('super_admin.members.*', 'super_admin.sub_divisions.*') ? 'nav-active' : '' }}">
                         <i class="ph-fill ph-users-three nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
-                        Anggota Divisi
+                        Kepengurusan Aktif
                     </a>
                     @endif
 
-                    @if(auth()->user()->hasActiveCORole())
-                    <a href="{{ route('kepanitiaan.co.sprints.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.co.sprints.*') ? 'nav-active' : '' }}">
-                        <i class="ph-fill ph-calendar-check nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
-                        Pengaturan Sprint
-                    </a>
-                    @endif
+                </div>{{-- close kepengurusan space-y div --}}
+            </div>{{-- close kepengurusan section div --}}
+
+            {{-- ===== KEPANITIAAN SECTION ===== --}}
+            @php
+                $activeCommittees = auth()->user()->getActiveEvents();
+            @endphp
+
+            @if($activeCommittees->isNotEmpty())
+                <div>
+                    <p class="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Kepanitiaan</p>
+                    
+                    <div class="space-y-6">
+                        @foreach($activeCommittees as $committee)
+                            @php
+                                $roleSlug = $committee->role->slug;
+                                $isKetupel = in_array($roleSlug, ['ketua-pelaksana', 'wakil-ketua-pelaksana', 'sekretaris-pelaksana', 'bendahara-pelaksana']);
+                                $isCO = $roleSlug === 'co-divisi';
+                                
+                                if ($isKetupel) {
+                                    $groupLabel = 'Ketupel ' . $committee->event->name;
+                                } elseif ($isCO) {
+                                    $divName = $committee->division ? $committee->division->name : '';
+                                    $groupLabel = trim('CO ' . $divName) . ' ' . $committee->event->name;
+                                } else {
+                                    $divName = $committee->division ? $committee->division->name : '';
+                                    $groupLabel = trim('Anggota ' . $divName) . ' ' . $committee->event->name;
+                                }
+                            @endphp
+                            <div>
+                                <p class="px-3 text-[10px] font-extrabold text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                            <i class="ph-fill ph-ticket text-xs"></i>
+                            {{ $groupLabel }}
+                        </p>
+                        <div class="space-y-1.5">
+                            @if($isKetupel)
+                            <a href="{{ route('kepanitiaan.ketupel.dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.dashboard') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-crown-simple nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Dashboard Ketupel
+                            </a>
+                            <a href="{{ route('kepanitiaan.ketupel.progres.divisi') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.progres.divisi') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-chart-line-up nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Progres Divisi
+                            </a>
+                            <a href="{{ route('kepanitiaan.ketupel.manage-team', $committee->event_id) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.manajemen-panitia', 'kepanitiaan.ketupel.manage-team') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-users-four nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Manajemen Panitia
+                            </a>
+                            @elseif($isCO)
+                            <a href="{{ route('kepanitiaan.co.dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.co.dashboard') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-users-three nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Dashboard CO
+                            </a>
+                            <a href="{{ route('kepanitiaan.co.progres.divisi') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.co.progres.divisi') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-chart-line-up nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Progres Divisi
+                            </a>
+                            @else
+                            <a href="{{ route('kepanitiaan.anggota.dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.anggota.dashboard') ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-ticket nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Dashboard Panitia
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
                 </div>
             </div>
+            @endif
+            {{-- ===== END KEPANITIAAN SECTION ===== --}}
+
+                {{-- ===== MESSAGING (shared) ===== --}}
+                <div>
+                    <div class="space-y-1.5">
+                    {{-- Messaging --}}
+                    @php
+                        $totalUnread = \App\Models\Messaging\Channel::whereHas('members', function($q) {
+                            $q->where('user_id', auth()->id());
+                        })->get()->sum(function($ch) {
+                            return $ch->unreadCountFor(auth()->id());
+                        });
+                    @endphp
+                    <a href="{{ route('messages.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('messages.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-chat-circle-dots nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Pesan
+                        @if($totalUnread > 0)
+                            <span class="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                                {{ $totalUnread > 99 ? '99+' : $totalUnread }}
+                            </span>
+                        @endif
+                    </a>
+                    </div>
+                </div>
 
 
         </nav>
@@ -159,20 +317,7 @@
                         <span class="text-base font-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-[13px] font-bold text-slate-900 uppercase truncate">{{ auth()->user()->name }}</p>
-                        @php
-                            $roleName = 'Kepanitiaan';
-                            if (auth()->user()->hasActiveKetupelRole()) {
-                                $roleName = 'Ketua Pelaksana';
-                            } elseif (auth()->user()->hasActiveSekpelBenpelRole()) {
-                                $roleName = 'Inti Pelaksana';
-                            } elseif (auth()->user()->hasActiveCORole()) {
-                                $roleName = 'CO Divisi';
-                            } elseif (auth()->user()->hasActiveAnggotaRole()) {
-                                $roleName = 'Anggota Divisi';
-                            }
-                        @endphp
-                        <p class="text-[11px] font-medium text-slate-400 truncate">{{ $roleName }}</p>
+                        <p class="text-[15px] font-bold text-slate-900 uppercase tracking-wide truncate">{{ auth()->user()->nim ?? 'NIM tidak tersedia' }}</p>
                     </div>
                 </div>
                 
@@ -192,23 +337,23 @@
 
         <!-- Topbar -->
         <header class="sticky top-0 z-30 h-20 bg-white/90 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-5 sm:px-8">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
                 <!-- Mobile hamburger -->
                 <button @click="sidebarOpen = true" class="lg:hidden p-2 -ml-1 text-slate-500 hover:text-brand-600 rounded-xl hover:bg-brand-50 transition-colors">
                     <i class="ph ph-list text-xl"></i>
                 </button>
 
-                <!-- Page title & breadcrumbs -->
-                <div class="flex flex-col justify-center">
-                    <h2 class="text-[20px] font-bold text-slate-900 leading-tight">@yield('title', 'Dashboard')</h2>
-                    <div class="hidden sm:flex items-center gap-1.5 text-[13px] text-slate-500 font-normal">
-                        @yield('breadcrumbs', 'Kepanitiaan')
+                <!-- Page title & Context -->
+                <div class="flex flex-col justify-center min-w-0">
+                    <h2 class="text-[18px] sm:text-[20px] font-bold text-slate-900 leading-tight truncate">@yield('title', 'Dashboard')</h2>
+                    <div class="hidden sm:flex items-center gap-1.5 text-[13px] text-slate-500 font-normal truncate">
+                        {{ request()->is('kepengurusan*') || request()->is('messages*') ? 'Kepengurusan' : 'Kepanitiaan' }}
                     </div>
                 </div>
             </div>
 
             <!-- Right actions -->
-            <div class="flex items-center gap-3 sm:gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 shrink-0">
                 <button class="relative p-2 text-slate-400 hover:text-brand-600 rounded-xl hover:bg-brand-50 transition-colors">
                     <i class="ph ph-bell text-xl"></i>
                     <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -220,7 +365,10 @@
                         <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm ring-2 ring-slate-100 bg-brand-500">
                             <span class="text-sm font-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                         </div>
-                        <span class="hidden sm:block text-sm font-semibold text-slate-700">{{ auth()->user()->name }}</span>
+                        <div class="hidden sm:flex flex-col items-start text-left">
+                            <span class="text-sm font-semibold text-slate-700 leading-tight">{{ auth()->user()->name }}</span>
+                            <span class="text-[10px] font-medium text-slate-400 mt-0.5">{{ auth()->user()->nim ?? 'NIM tidak tersedia' }}</span>
+                        </div>
                         <i class="ph ph-caret-down text-slate-400 hidden sm:block text-xs"></i>
                     </button>
 
@@ -269,6 +417,27 @@
                     </button>
                 </div>
                 @endif
+
+                @if($errors->any())
+                <div x-data="{ show: true }" x-show="show" x-transition
+                     class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800">
+                    <div class="flex items-start gap-3">
+                        <i class="ph-fill ph-warning-circle text-xl text-rose-500 shrink-0 mt-0.5"></i>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-bold mb-1">Terjadi kesalahan:</h3>
+                            <ul class="list-disc pl-5 text-sm font-medium space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <button @click="show = false" class="text-rose-400 hover:text-rose-600">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+                </div>
+                @endif
+
 
                 @yield('content')
             </div>

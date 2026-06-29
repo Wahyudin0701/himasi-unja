@@ -4,10 +4,15 @@
 
 @section('content')
 <div class="w-full pb-10">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-black text-slate-800">Pengaturan Sprint</h1>
             <p class="text-slate-500 mt-1 text-sm">Kelola jadwal sprint untuk divisi yang Anda koordinasikan.</p>
+        </div>
+        <div>
+            <a href="{{ route('kepanitiaan.co.dashboard') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-brand-600 transition-colors">
+                <i class="ph-bold ph-arrow-left"></i> Kembali
+            </a>
         </div>
     </div>
 

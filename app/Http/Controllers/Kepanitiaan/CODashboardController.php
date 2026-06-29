@@ -244,7 +244,7 @@ class CODashboardController extends Controller
         // Jika report berelasi banyak, kita ambil first saja untuk ditampilkan
         $latestReport = $task->reports->first();
 
-        return view('kepanitiaan.co.tasks_detail', compact('task', 'latestReport'));
+        return view('kepanitiaan.co.tasks.tasks_detail', compact('task', 'latestReport'));
     }
 
     /**
@@ -283,7 +283,7 @@ class CODashboardController extends Controller
             ->orderBy('sprint_number', 'asc')
             ->get();
 
-        return view('kepanitiaan.co.tasks_create', compact('event', 'division', 'members', 'sprints'));
+        return view('kepanitiaan.co.tasks.tasks_create', compact('event', 'division', 'members', 'sprints'));
     }
 
     /**
@@ -392,7 +392,7 @@ class CODashboardController extends Controller
             ->orderBy('sprint_number', 'asc')
             ->get();
 
-        return view('kepanitiaan.co.tasks_edit', compact('task', 'event', 'division', 'members', 'sprints'));
+        return view('kepanitiaan.co.tasks.tasks_edit', compact('task', 'event', 'division', 'members', 'sprints'));
     }
 
     /**

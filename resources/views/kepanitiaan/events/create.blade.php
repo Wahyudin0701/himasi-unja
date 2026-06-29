@@ -2,10 +2,7 @@
 
 @section('title', 'Buat Event Baru')
 @section('breadcrumbs')
-    <span class="text-slate-300">/</span>
-    <a href="{{ route('events.index') }}" class="text-slate-500 hover:text-slate-800">Events</a>
-    <span class="text-slate-300">/</span>
-    <span class="text-slate-800">Buat Baru</span>
+    <span class="text-slate-700">Kepanitiaan</span>
 @endsection
 
 @section('content')

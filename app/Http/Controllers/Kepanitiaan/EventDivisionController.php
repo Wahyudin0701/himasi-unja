@@ -13,13 +13,12 @@ class EventDivisionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         EventDivision::create([
             'event_id' => $event->id,
             'name' => $request->name,
-            'description' => $request->description,
+            'slug' => \Illuminate\Support\Str::slug($request->name),
         ]);
 
         return redirect()->route('events.show', $event->id)->with('success', 'Divisi kepanitiaan berhasil ditambahkan!');
@@ -29,12 +28,11 @@ class EventDivisionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         $division->update([
             'name' => $request->name,
-            'description' => $request->description,
+            'slug' => \Illuminate\Support\Str::slug($request->name),
         ]);
 
         return redirect()->route('events.show', $event->id)->with('success', 'Divisi kepanitiaan berhasil diperbarui!');

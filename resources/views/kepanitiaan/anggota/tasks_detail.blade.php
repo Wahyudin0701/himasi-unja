@@ -3,11 +3,7 @@
 @section('title', 'Detail Tugas')
 
 @section('breadcrumbs')
-    <span>Kepanitiaan</span>
-    <i class="ph ph-caret-right text-xs"></i>
-    <a href="{{ route('kepanitiaan.anggota.dashboard') }}" class="hover:text-brand-600 transition-colors">Dashboard Anggota Panitia</a>
-    <i class="ph ph-caret-right text-xs"></i>
-    <span class="text-slate-700">Detail Tugas</span>
+    <span class="text-slate-700">Kepanitiaan</span>
 @endsection
 
 @section('content')
@@ -50,20 +46,26 @@
                     </div>
                     <div class="md:flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tenggat Waktu</p>
-                        <p class="text-sm font-bold text-slate-700">
-                            @php
-                                $dueDate = $task->due_date ? \Carbon\Carbon::parse($task->due_date)->startOfDay() : null;
-                                $today = now()->startOfDay();
-                                if (!$dueDate) {
-                                    $diffStr = '-';
-                                } else {
-                                    $diff = $today->diffInDays($dueDate, false);
-                                    if ($diff == 0) $diffStr = 'Hari ini';
-                                    elseif ($diff == 1) $diffStr = 'Besok';
-                                    elseif ($diff > 0) $diffStr = $diff . ' Hari lagi';
-                                    else $diffStr = 'Terlewat ' . abs($diff) . ' hari';
+                        @php
+                            $dueDate = $task->due_date ? \Carbon\Carbon::parse($task->due_date)->startOfDay() : null;
+                            $today = now()->startOfDay();
+                            $isOverdue = false;
+                            if (!$dueDate) {
+                                $diffStr = '-';
+                            } else {
+                                $diff = $today->diffInDays($dueDate, false);
+                                if ($diff == 0) $diffStr = 'Hari ini';
+                                elseif ($diff == 1) $diffStr = 'Besok';
+                                elseif ($diff > 0) $diffStr = $diff . ' Hari lagi';
+                                else {
+                                    $diffStr = 'Terlewat ' . abs($diff) . ' hari';
+                                    if ($task->status !== 'completed' && $task->status !== 'done') {
+                                        $isOverdue = true;
+                                    }
                                 }
-                            @endphp
+                            }
+                        @endphp
+                        <p class="text-sm font-bold {{ $isOverdue ? 'text-rose-600' : 'text-slate-700' }}">
                             {{ $diffStr }}
                         </p>
                     </div>

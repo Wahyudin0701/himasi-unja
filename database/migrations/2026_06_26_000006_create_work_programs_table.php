@@ -12,12 +12,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
             $table->string('name');
+            $table->foreignId('pic_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('type', ['event', 'non_event'])->default('non_event');
             $table->text('description')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->decimal('budget_plan', 15, 2)->nullable();
-            $table->enum('status', ['draft', 'planned', 'in_progress', 'completed', 'cancelled'])->default('draft');
+            $table->enum('status', ['planning', 'ongoing', 'completed', 'cancelled'])->default('planning');
+            $table->text('cancellation_reason')->nullable();
             $table->timestamps();
         });
     }

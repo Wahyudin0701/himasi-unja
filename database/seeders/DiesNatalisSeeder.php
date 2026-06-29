@@ -30,7 +30,7 @@ class DiesNatalisSeeder extends Seeder
             'description' => 'Perayaan hari jadi Himpunan Mahasiswa Sistem Informasi yang diadakan rutin setiap tahun.',
             'start_date' => now()->addMonths(2),
             'end_date' => now()->addMonths(2)->addDays(3),
-            'status' => 'planned',
+            'status' => 'planning',
         ]);
 
         // 3. Buat Event yang Terhubung dengan Proker

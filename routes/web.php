@@ -30,28 +30,65 @@ Route::get('/struktur', function () {
             ->with(['members.user', 'members.orgPosition'])
             ->first();
             
+    $pembinaDivision = \App\Models\Kepengurusan\Division::where('type', 'pembina')
+            ->whereHas('period', function($q) { $q->where('is_active', true); })
+            ->with(['members.user', 'members.orgPosition'])
+            ->first();
+            
+    $dpDivision = \App\Models\Kepengurusan\Division::where('type', 'dp')
+            ->whereHas('period', function($q) { $q->where('is_active', true); })
+            ->with(['members.user', 'members.orgPosition'])
+            ->first();
+
+    $resolveAvatar = function($avatar) {
+        if (!$avatar) return null;
+        if (file_exists(public_path(ltrim($avatar, '/')))) return asset(ltrim($avatar, '/'));
+        if (file_exists(public_path('storage/' . ltrim($avatar, '/')))) return asset('storage/' . ltrim($avatar, '/'));
+        return null;
+    };
+
     if ($bphDivision) {
-        $bphDivision->users = $bphDivision->members->map(function($m) {
+        $bphDivision->users = $bphDivision->members->map(function($m) use ($resolveAvatar) {
             $u = clone $m->user;
             $u->position_title = $m->position_title ?: ($m->orgPosition ? $m->orgPosition->name : 'Anggota');
+            $u->avatar_url = $resolveAvatar($u->avatar);
             return $u;
         });
     }
-            
+    
+    if ($pembinaDivision) {
+        $pembinaDivision->users = $pembinaDivision->members->map(function($m) use ($resolveAvatar) {
+            $u = clone $m->user;
+            $u->position_title = $m->position_title ?: ($m->orgPosition ? $m->orgPosition->name : 'Anggota');
+            $u->avatar_url = $resolveAvatar($u->avatar);
+            return $u;
+        });
+    }
+    
+    if ($dpDivision) {
+        $dpDivision->users = $dpDivision->members->map(function($m) use ($resolveAvatar) {
+            $u = clone $m->user;
+            $u->position_title = $m->position_title ?: ($m->orgPosition ? $m->orgPosition->name : 'Anggota');
+            $u->avatar_url = $resolveAvatar($u->avatar);
+            return $u;
+        });
+    }
+
     $divisions = \App\Models\Kepengurusan\Division::where('type', 'divisi')
             ->whereHas('period', function($q) { $q->where('is_active', true); })
             ->with(['members.user', 'members.orgPosition'])
             ->get();
             
     foreach ($divisions as $div) {
-        $div->users = $div->members->map(function($m) {
+        $div->users = $div->members->map(function($m) use ($resolveAvatar) {
             $u = clone $m->user;
             $u->position_title = $m->position_title ?: ($m->orgPosition ? $m->orgPosition->name : 'Anggota');
+            $u->avatar_url = $resolveAvatar($u->avatar);
             return $u;
         });
     }
             
-    return view('public.structure', compact('bphDivision', 'divisions'));
+    return view('public.structure', compact('bphDivision', 'divisions', 'pembinaDivision', 'dpDivision'));
 })->name('structure');
 
 Route::get('/division/{slug}', function ($slug) {
@@ -60,9 +97,17 @@ Route::get('/division/{slug}', function ($slug) {
             ->with(['members.user', 'members.orgPosition', 'workPrograms'])
             ->firstOrFail();
 
-    $divisi->users = $divisi->members->map(function($m) {
+    $resolveAvatar = function($avatar) {
+        if (!$avatar) return null;
+        if (file_exists(public_path(ltrim($avatar, '/')))) return asset(ltrim($avatar, '/'));
+        if (file_exists(public_path('storage/' . ltrim($avatar, '/')))) return asset('storage/' . ltrim($avatar, '/'));
+        return null;
+    };
+
+    $divisi->users = $divisi->members->map(function($m) use ($resolveAvatar) {
         $u = clone $m->user;
         $u->position_title = $m->position_title ?: ($m->orgPosition ? $m->orgPosition->name : 'Anggota');
+        $u->avatar_url = $resolveAvatar($u->avatar);
         return $u;
     });
 
@@ -72,6 +117,30 @@ Route::get('/division/{slug}', function ($slug) {
 Route::get('/dashboard', function () {
     $user = \Illuminate\Support\Facades\Auth::user();
     
+    // Pembina & DP → Dashboard overview
+    if (in_array($user->global_role, ['pembina', 'dp'])) {
+        return redirect()->route('kepengurusan.sekretaris.dashboard');
+    }
+
+    // Super Admin Dashboard
+    if ($user->global_role === 'super_admin') {
+        return redirect()->route('super_admin.dashboard');
+    }
+
+    // Kepengurusan Dashboards
+    if (in_array($user->global_role, ['kahim', 'wakahim', 'sekretaris', 'bendahara'])) {
+        return redirect()->route('kepengurusan.sekretaris.dashboard');
+    }
+    
+    if ($user->global_role === 'kadiv') {
+        return redirect()->route('kepengurusan.kadiv.dashboard');
+    }
+
+    if ($user->global_role === 'anggota') {
+        return redirect()->route('kepengurusan.anggota.dashboard');
+    }
+
+    // Kepanitiaan Dashboards
     if ($user->hasActiveKetupelRole()) {
         return redirect()->route('kepanitiaan.ketupel.dashboard');
     }

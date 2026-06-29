@@ -3,9 +3,7 @@
 @section('title', 'Dashboard Ketupel')
 
 @section('breadcrumbs')
-    <span>Kepanitiaan</span>
-    <i class="ph ph-caret-right text-[9px]"></i>
-    <span class="text-slate-600">Ketua Pelaksana</span>
+    <span class="text-slate-700">Kepanitiaan</span>
 @endsection
 
 @section('content')

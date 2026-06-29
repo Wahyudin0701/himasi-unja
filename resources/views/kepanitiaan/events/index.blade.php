@@ -2,8 +2,7 @@
 
 @section('title', 'Events')
 @section('breadcrumbs')
-    <span class="text-slate-300">/</span>
-    <span class="text-slate-800">Events</span>
+    <span class="text-slate-700">Kepanitiaan</span>
 @endsection
 
 @section('content')

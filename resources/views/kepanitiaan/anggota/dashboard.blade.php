@@ -114,7 +114,7 @@
                                                 {{ $task->priority }}
                                             </span>
                                             @if($task->due_date)
-                                                @php $isOverdue = \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status !== 'completed'; @endphp
+                                                @php $isOverdue = \Carbon\Carbon::parse($task->due_date)->endOfDay()->isPast() && $task->status !== 'completed'; @endphp
                                                 <span class="text-[10px] font-semibold ml-auto {{ $isOverdue ? 'text-rose-600' : 'text-slate-500' }}">
                                                     DL: {{ \Carbon\Carbon::parse($task->due_date)->format('d M') }}
                                                 </span>

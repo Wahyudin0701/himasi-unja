@@ -1,14 +1,13 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Anggota Divisi')
+@section('title', 'Progres Divisi')
 
 @section('content')
 <div class="max-w-7xl mx-auto pb-10 space-y-8">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">Manajemen Anggota</p>
-            <h1 class="text-2xl font-black text-slate-900">Anggota Divisi & Tugas</h1>
+            <h1 class="text-2xl font-black text-slate-900">Progres Divisi & Tugas</h1>
             <p class="text-slate-500 mt-1 text-sm">Pantau progres setiap anggota beserta rincian tugas yang sedang dikerjakan.</p>
         </div>
     </div>
@@ -31,8 +30,9 @@
         <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-8">
 
             {{-- Division Header --}}
-            <div class="px-6 md:px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-5">
-                <div class="flex items-center gap-4 flex-1">
+            <div class="border-b border-slate-100">
+                <div class="px-6 md:px-8 pt-6 pb-4 flex flex-col sm:flex-row sm:items-center gap-5">
+                    <div class="flex items-center gap-4 flex-1">
                     <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                         <i class="ph-fill ph-users-three text-2xl"></i>
                     </div>
@@ -51,19 +51,20 @@
                         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Total Tugas</p>
                     </div>
                     <div class="text-center min-w-[80px]">
-                        <p class="text-xl font-black {{ $divisionProgress == 100 ? 'text-emerald-600' : 'text-brand-600' }}">{{ $divisionProgress }}%</p>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Selesai</p>
+                        <p class="text-xl font-black {{ $divisionProgress == 100 && $totalTasks > 0 ? 'text-emerald-600' : 'text-brand-600' }}">{{ $divisionProgress }}%</p>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Progres</p>
                     </div>
                 </div>
-            </div>
+                </div> {{-- End of Header Flex Container --}}
 
-            {{-- Division Progress Bar --}}
-            @if($totalTasks > 0)
-            <div class="h-1.5 bg-slate-100">
-                <div class="h-full {{ $divisionProgress == 100 ? 'bg-emerald-500' : 'bg-brand-500' }} transition-all duration-700 rounded-r-full"
-                     style="width: {{ $divisionProgress }}%"></div>
-            </div>
-            @endif
+                {{-- Division Progress Bar --}}
+                <div class="px-6 md:px-8 pb-6">
+                    <div class="h-1.5 bg-slate-100 w-full rounded-full overflow-hidden">
+                        <div class="h-full {{ $divisionProgress == 100 && $totalTasks > 0 ? 'bg-emerald-500' : 'bg-brand-500' }} transition-all duration-700 rounded-full"
+                             style="width: {{ $divisionProgress }}%"></div>
+                    </div>
+                </div>
+            </div> {{-- End of Border Bottom Container --}}
 
             {{-- Members List --}}
             <div class="p-6 md:p-8">
@@ -212,7 +213,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colTodo as $task)
-                                                                @php $isOverdue = $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast(); @endphp
+                                                                @php $isOverdue = $task->due_date && \Carbon\Carbon::parse($task->due_date)->endOfDay()->isPast(); @endphp
                                                                 <a href="{{ route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border {{ $isOverdue ? 'border-rose-200' : 'border-slate-200' }} rounded-xl p-3 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')

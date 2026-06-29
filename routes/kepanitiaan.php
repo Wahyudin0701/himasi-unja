@@ -22,10 +22,7 @@ Route::prefix('kepanitiaan')->middleware('auth')->group(function () {
 
     // ===== DASHBOARD KEPANITIAAN (Role-Based) =====
 
-    // ----------------------------------------------------
-    // MENU BERSAMA (Ketupel & CO Divisi)
-    // ----------------------------------------------------
-    Route::get('/anggota-divisi', [App\Http\Controllers\Kepanitiaan\MemberController::class, 'index'])->name('kepanitiaan.anggota.divisi');
+
 
     // ----------------------------------------------------
     // KETUPEL (Ketua Pelaksana & Wakil Ketupel)
@@ -36,12 +33,27 @@ Route::prefix('kepanitiaan')->middleware('auth')->group(function () {
         
         // Manajemen Tim
         Route::post('/events/{event}/team', [KetupelDashboardController::class, 'storeTeamMember'])->name('store-team');
+        Route::put('/events/{event}/team/{committee}', [KetupelDashboardController::class, 'updateTeamMember'])->name('update-team');
         Route::delete('/events/{event}/team/{committee}', [KetupelDashboardController::class, 'removeTeamMember'])->name('remove-team');
+
+        // Manajemen Divisi (oleh Ketupel)
+        Route::get('/events/{event}/divisions/create', [KetupelDashboardController::class, 'createDivision'])->name('create-division');
+        Route::post('/events/{event}/divisions', [KetupelDashboardController::class, 'storeDivision'])->name('store-division');
+        Route::delete('/events/{event}/divisions/{division}', [KetupelDashboardController::class, 'destroyDivision'])->name('destroy-division');
+
+        // Progres Divisi untuk Ketupel
+        Route::get('/progres-divisi', [App\Http\Controllers\Kepanitiaan\MemberController::class, 'ketupelIndex'])->name('progres.divisi');
+
+        // Manajemen Panitia (auto-redirect ke manage-team event aktif)
+        Route::get('/manajemen-panitia', [KetupelDashboardController::class, 'manajemenPanitia'])->name('manajemen-panitia');
     });
 
     // CO Dashboard
     Route::prefix('co')->name('kepanitiaan.co.')->group(function () {
         Route::get('/dashboard', [CODashboardController::class, 'index'])->name('dashboard');
+        
+        // Progres Divisi
+        Route::get('/progres-divisi', [App\Http\Controllers\Kepanitiaan\MemberController::class, 'index'])->name('progres.divisi');
         
         // Pengaturan Sprint
         Route::get('/sprints', [CODashboardController::class, 'manageSprints'])->name('sprints.index');

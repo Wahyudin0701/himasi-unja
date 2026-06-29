@@ -35,7 +35,7 @@
         </a>
         @endif
 
-        @if(in_array(auth()->user()->global_role, ['super_admin', 'kahim', 'kadiv']) || (auth()->user()->divisi && auth()->user()->divisi->nama_divisi === 'BPH'))
+        @if(in_array(auth()->user()->global_role, ['super_admin', 'pimpinan', 'kadiv']) || (auth()->user()->divisi && auth()->user()->divisi->nama_divisi === 'BPH'))
         <div class="pt-4 pb-2">
             <div class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Manajemen

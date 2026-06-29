@@ -21,6 +21,11 @@ class Division extends Model
         return $this->hasMany(Member::class);
     }
 
+    public function subDivisions()
+    {
+        return $this->hasMany(SubDivision::class);
+    }
+
     public function workPrograms()
     {
         return $this->hasMany(WorkProgram::class);

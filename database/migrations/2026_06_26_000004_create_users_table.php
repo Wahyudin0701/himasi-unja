@@ -12,11 +12,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('nim')->nullable()->unique();
+            $table->string('angkatan', 4)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->text('dietary_restrictions')->nullable();
-            $table->enum('global_role', ['super_admin', 'kahim', 'kadiv', 'anggota'])->default('anggota');
+            $table->enum('global_role', ['super_admin', 'pembina', 'dp', 'kahim', 'wakahim', 'sekretaris', 'bendahara', 'kadiv', 'anggota'])->default('anggota');
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

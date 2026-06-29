@@ -18,16 +18,26 @@ return new class extends Migration
             $table->string('color')->nullable();            // bg-indigo-50
             $table->string('text_color')->nullable();
             $table->text('description')->nullable();
-            $table->enum('type', ['bph', 'divisi'])->default('divisi');
+            $table->enum('type', ['pembina', 'dp', 'bph', 'divisi'])->default('divisi');
             $table->integer('base_points')->default(100);
             $table->timestamps();
 
             $table->unique(['period_id', 'slug']);
         });
+        Schema::create('sub_divisions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
+            $table->string('name');
+            $table->string('slug');
+            $table->timestamps();
+
+            $table->unique(['division_id', 'slug']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('sub_divisions');
         Schema::dropIfExists('divisions');
     }
 };

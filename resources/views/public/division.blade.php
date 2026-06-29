@@ -13,6 +13,121 @@
         background-clip: text;
         animation: shimmer 4s linear infinite;
     }
+
+    /* ── Member Card ──────────────────────────────────────────── */
+    .member-item {
+        width: 170px;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .member-item:hover { transform: translateY(-6px); }
+    .member-item--lg { width: 200px; }
+    .member-item--sm { width: 150px; }
+
+    /* Gradient border ring — wraps only the PHOTO */
+    .member-avatar-ring {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        padding: 3px;
+        border-radius: 1.25rem;
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+        z-index: 0;
+    }
+    .member-item:hover .member-avatar-ring {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+        box-shadow: 0 14px 32px rgba(99,102,241,0.30);
+    }
+
+    /* Photo wrapper */
+    .member-card__inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: calc(1.25rem - 3px);
+        overflow: hidden;
+        background: #f1f5f9;
+    }
+
+    /* Photo */
+    .member-card__photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: scale(1);
+        transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .member-item:hover .member-card__photo {
+        transform: scale(1.06);
+    }
+
+    /* Dark overlay on photo hover */
+    .member-card__overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(15,23,42,0.45) 0%, transparent 55%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        z-index: 1;
+        pointer-events: none;
+    }
+    .member-item:hover .member-card__overlay { opacity: 1; }
+
+    /* Info panel — sits BELOW photo, lifts on hover */
+    .member-card__info {
+        position: relative;
+        z-index: 2;
+        background: #ffffff;
+        border-radius: 0.9rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid #f1f5f9;
+        padding: 10px 10px 12px;
+        text-align: center;
+        margin-top: -14px;
+        transform: translateY(0);
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+    }
+    .member-item:hover .member-card__info {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 40px rgba(99,102,241,0.12);
+    }
+
+    /* Accent divider — expands on hover */
+    .member-card__info .info-divider {
+        width: 1.75rem;
+        height: 2px;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        border-radius: 999px;
+        margin: 0 auto 6px;
+        transition: width 0.35s ease;
+    }
+    .member-item:hover .info-divider { width: 3rem; }
+
+    .member-card__info .info-name {
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.3;
+        transition: color 0.3s ease;
+    }
+    .member-item:hover .info-name { color: #4f46e5; }
+
+    .member-card__info .info-position {
+        display: block;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6366f1;
+        margin-top: 2px;
+    }
+    .member-card__info .info-meta {
+        display: block;
+        font-weight: 600;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
 </style>
 @endpush
 
@@ -126,26 +241,41 @@
 
             @foreach(['level1', 'level2', 'level3', 'level4', 'level5'] as $level)
                 @if($levels[$level]->isNotEmpty())
+                    @php
+                        $sizeClass = '';
+                        if ($level === 'level1' || $level === 'level2') {
+                            $sizeClass = 'member-item--lg';
+                        } elseif ($level === 'level5') {
+                            $sizeClass = 'member-item--sm';
+                        }
+                    @endphp
                     <div class="flex flex-wrap justify-center gap-6 lg:gap-8 relative z-10 w-full" data-aos="fade-up">
                         @foreach($levels[$level] as $pengurus)
                             <!-- Connection Dot (Desktop Only) -->
                             <div class="absolute left-1/2 top-1/2 w-3 h-3 bg-white border-2 border-primary rounded-full -translate-x-1/2 -translate-y-1/2 z-0 hidden md:block shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                             
-                            <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-3 pb-6 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 w-full sm:w-[260px] relative group z-10">
-                                <div class="w-full aspect-[4/5] rounded-2xl overflow-hidden mb-5 relative bg-slate-100 shadow-inner">
-                                    @if($pengurus->avatar && file_exists(public_path($pengurus->avatar)))
-                                        <img src="{{ asset($pengurus->avatar) }}" alt="{{ $pengurus->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    @else
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($pengurus->name) }}&background={{ $bg }}&color=fff&size=512&bold=true" alt="{{ $pengurus->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    @endif
-                                    
-                                    <!-- Subtle gradient overlay on hover -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div class="member-item {{ $sizeClass }} flex flex-col items-center cursor-default">
+                                <div class="member-avatar-ring w-full aspect-[3/4]">
+                                    <div class="member-card__inner">
+                                        @if($pengurus->avatar_url)
+                                            <img src="{{ $pengurus->avatar_url }}" alt="{{ $pengurus->name }}" class="member-card__photo">
+                                        @else
+                                        <div class="member-card__photo bg-slate-100 flex items-center justify-center">
+                                            <svg class="w-1/2 h-1/2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                            </svg>
+                                        </div>
+                                        @endif
+                                        <div class="member-card__overlay"></div>
+                                    </div>
                                 </div>
-                                
-                                <div class="px-3">
-                                    <h3 class="text-[17px] font-bold text-slate-800 mb-1.5 leading-tight group-hover:text-slate-900 transition-colors">{{ $pengurus->name }}</h3>
-                                    <p class="text-[13px] font-bold tracking-wide uppercase" style="color: #{{ $bg }}">{{ $pengurus->position_title }}</p>
+                                <div class="member-card__info w-[90%]">
+                                    <div class="info-divider" style="background: linear-gradient(90deg, #{{ $bg }}, #a5b4fc)"></div>
+                                    <h4 class="info-name {{ $level === 'level5' ? 'text-xs' : ($level === 'level3' || $level === 'level4' ? 'text-[13px]' : 'text-sm') }}">{{ $pengurus->name }}</h4>
+                                    <span class="info-position {{ $level === 'level5' ? 'text-[8px]' : ($level === 'level3' || $level === 'level4' ? 'text-[9px]' : 'text-[10px]') }}" style="color: #{{ $bg }}">{{ $pengurus->position_title }}</span>
+                                    @if($pengurus->nim)
+                                        <span class="info-meta {{ $level === 'level5' ? 'text-[8px]' : 'text-[9px]' }}">{{ $pengurus->nim }} &middot; {{ $pengurus->angkatan }}</span>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
