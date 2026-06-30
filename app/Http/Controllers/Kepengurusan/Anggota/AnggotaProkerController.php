@@ -4,118 +4,97 @@ namespace App\Http\Controllers\Kepengurusan\Anggota;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ProgressReport\WorkTask;
-use App\Models\ProgressReport\ProgressReport;
+use App\Models\Kepengurusan\WorkProgram;
+use App\Models\Kepengurusan\ProkerLog;
+use Illuminate\Support\Facades\Storage;
 
 class AnggotaProkerController extends Controller
 {
     /**
-     * Tampilkan Kanban Proker untuk Anggota Divisi.
+     * Tampilkan Dashboard Proker untuk Anggota Divisi.
      */
     public function index()
     {
         $user = auth()->user();
 
-        // Ambil semua tugas yang di-assign ke user dari proker non-event
-        // yang sedang aktif
-        $tasks = WorkTask::where('assigned_to', $user->id)
-            ->whereHas('workProgram', function($q) {
-                $q->where('type', 'non-event')
-                  ->whereIn('status', ['planning', 'ongoing']);
+        // Ambil proker internal atau kolaborasi yang mana user adalah PIC-nya atau sebagai collaborator
+        $prokers = WorkProgram::where(function($query) use ($user) {
+                $query->where('pic_id', $user->id)
+                      ->whereIn('type', ['internal', 'kolaborasi']);
             })
-            ->with(['workProgram', 'assigner', 'reports'])
-            ->orderBy('due_date')
+            ->orWhere(function($query) use ($user) {
+                $query->whereHas('collaborators', function($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                })
+                ->where('type', 'kolaborasi');
+            })
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        // Statistik
-        $totalTasks = $tasks->count();
-        $completedTasks = $tasks->where('status', 'completed')->count();
-        $inProgressTasks = $tasks->whereIn('status', ['waiting', 'revisi', 'todo'])->count();
+        $totalProkers = $prokers->count();
+        $completedProkers = $prokers->where('status', 'completed')->count();
+        $ongoingProkers = $prokers->where('status', 'ongoing')->count();
+        $planningProkers = $prokers->where('status', 'planning')->count();
         
         return view('kepengurusan.anggota.proker.kanban', compact(
-            'user', 'tasks', 'totalTasks', 'completedTasks', 'inProgressTasks'
+            'user', 'prokers', 'totalProkers', 'completedProkers', 'ongoingProkers', 'planningProkers'
         ));
     }
 
     /**
-     * Tampilkan detail tugas.
+     * Tampilkan detail proker dan riwayat jurnal.
      */
-    public function show(WorkTask $task)
+    public function show(WorkProgram $proker)
     {
         $user = auth()->user();
 
-        if ($task->assigned_to !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses ke tugas ini.');
+        $isCollaborator = $proker->type === 'kolaborasi' && $proker->collaborators()->where('users.id', $user->id)->exists();
+        if ($proker->pic_id !== $user->id && !$isCollaborator) {
+            abort(403, 'Anda tidak memiliki akses ke program kerja ini.');
         }
 
-        $task->load(['workProgram', 'assigner', 'reports']);
-        $latestReport = $task->reports()->latest()->first();
+        $logs = $proker->logs()->orderBy('created_at', 'desc')->get();
 
-        return view('kepengurusan.anggota.proker.task-detail', compact('user', 'task', 'latestReport'));
+        return view('kepengurusan.anggota.proker.show', compact('user', 'proker', 'logs'));
     }
 
     /**
-     * Ajukan penyelesaian tugas (ke status 'waiting' / Review).
+     * Ajukan jurnal laporan progres baru
      */
-    public function submitReview(Request $request, WorkTask $task)
+    public function storeLog(Request $request, WorkProgram $proker)
     {
         $user = auth()->user();
         
-        if ($task->assigned_to !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses ke tugas ini.');
+        $isCollaborator = $proker->type === 'kolaborasi' && $proker->collaborators()->where('users.id', $user->id)->exists();
+        if ($proker->pic_id !== $user->id && !$isCollaborator) {
+            abort(403, 'Anda tidak memiliki akses ke proker ini.');
         }
 
-        $request->validate([
-            'status' => 'required|in:waiting',
-            'catatan' => 'required|string',
-            'file_names.*' => 'nullable|string|max:255',
-            'files.*' => 'nullable|file|max:10240',
-            'link_names.*' => 'nullable|string|max:255',
-            'links.*' => 'nullable|url|max:255',
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'progress_update' => 'required|integer|min:0|max:100',
+            'attachment' => 'nullable|file|max:10240',
         ]);
 
-        if (!in_array($task->status, ['todo', 'revisi'])) {
-            return back()->with('error', 'Status tugas tidak valid untuk diajukan.');
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('proker_logs', 'public');
         }
 
-        $attachments = [
-            'files' => [],
-            'links' => []
-        ];
-
-        if ($request->hasFile('files')) {
-            $fileNames = $request->input('file_names', []);
-            foreach ($request->file('files') as $index => $file) {
-                $attachments['files'][] = [
-                    'name' => !empty($fileNames[$index]) ? $fileNames[$index] : 'Lampiran ' . (count($attachments['files']) + 1),
-                    'path' => $file->store('progress_reports', 'public')
-                ];
-            }
-        }
-
-        if ($request->filled('links')) {
-            $linkNames = $request->input('link_names', []);
-            foreach ($request->input('links') as $index => $link) {
-                if (!empty($link)) {
-                    $attachments['links'][] = [
-                        'name' => !empty($linkNames[$index]) ? $linkNames[$index] : 'Tautan ' . (count($attachments['links']) + 1),
-                        'url' => $link
-                    ];
-                }
-            }
-        }
-
-        ProgressReport::create([
-            'work_task_id' => $task->id,
-            'user_id' => $user->id,
-            'content' => $request->input('catatan'),
-            'attachments' => (empty($attachments['files']) && empty($attachments['links'])) ? null : $attachments,
-            'status_update' => 'in_progress'
+        ProkerLog::create([
+            'work_program_id' => $proker->id,
+            'author_id' => $user->id,
+            'content' => $validated['content'],
+            'progress_update' => $validated['progress_update'],
+            'attachment' => $attachmentPath,
+            'status' => 'pending',
         ]);
 
-        $task->status = 'waiting';
-        $task->save();
+        // Ubah status proker ke ongoing jika masih planning
+        if ($proker->status === 'planning') {
+            $proker->update(['status' => 'ongoing']);
+        }
 
-        return redirect()->route('kepengurusan.anggota.proker.kanban')->with('success', 'Progres tugas berhasil diajukan dan menunggu review Kadiv.');
+        return back()->with('success', 'Laporan progres berhasil diajukan dan menunggu reviu Kadiv.');
     }
 }

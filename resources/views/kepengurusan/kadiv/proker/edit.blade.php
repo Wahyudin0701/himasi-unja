@@ -45,10 +45,27 @@
                 <div>
                     <label for="type" class="block text-sm font-bold text-slate-700 mb-1.5">Jenis <span class="text-red-500">*</span></label>
                     <select name="type" id="type" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
-                        <option value="non_event" {{ old('type', $proker->type) == 'non_event' ? 'selected' : '' }}>Non-Event</option>
-                        <option value="event" {{ old('type', $proker->type) == 'event' ? 'selected' : '' }}>Event</option>
+                        <option value="internal" {{ old('type', $proker->type) == 'internal' ? 'selected' : '' }}>Internal Divisi</option>
+                        <option value="kolaborasi" {{ old('type', $proker->type) == 'kolaborasi' ? 'selected' : '' }}>Kolaborasi Lintas Divisi</option>
+                        <option value="event" {{ old('type', $proker->type) == 'event' ? 'selected' : '' }}>Event Kepanitiaan</option>
                     </select>
                     @error('type')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+                {{-- Bidang --}}
+                <div>
+                    <label for="sub_division_id" class="block text-sm font-bold text-slate-700 mb-1.5">Bidang <span class="text-red-500">*</span></label>
+                    <select name="sub_division_id" id="sub_division_id" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
+                        <option value="">-- Pilih Bidang --</option>
+                        @foreach($subDivisions as $sub)
+                            <option value="{{ $sub->id }}" {{ old('sub_division_id', $proker->sub_division_id) == $sub->id ? 'selected' : '' }}>{{ $sub->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('sub_division_id')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -91,10 +108,10 @@
                 </div>
             </div>
 
-            {{-- Dynamic Fields for Non-Event --}}
-            <div id="nonevent-fields" class="space-y-6 hidden bg-slate-50 p-5 rounded-2xl border border-slate-200">
+            {{-- Dynamic Fields for Internal & Kolaborasi --}}
+            <div id="internal-fields" class="space-y-6 hidden bg-slate-50 p-5 rounded-2xl border border-slate-200">
                 <div>
-                    <label for="pj_id" class="block text-sm font-bold text-slate-700 mb-1.5">Penanggung Jawab (PJ) <span class="text-red-500">*</span></label>
+                    <label for="pj_id" class="block text-sm font-bold text-slate-700 mb-1.5">Penanggung Jawab Utama (Dari Divisi Internal) <span class="text-red-500">*</span></label>
                     <select name="pj_id" id="pj_id" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
                         <option value="">-- Pilih Penanggung Jawab --</option>
                         @foreach($divisionMembers as $u)
@@ -107,10 +124,62 @@
                 </div>
             </div>
 
+            {{-- Dynamic Fields for Kolaborasi Only --}}
+            <div id="kolaborasi-fields" class="space-y-6 hidden bg-purple-50 p-5 rounded-2xl border border-purple-200">
+                <h3 class="text-sm font-black text-purple-700">Divisi Mitra & Anggota Kolaborator</h3>
+                
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Pilih Divisi Mitra <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-slate-500 mb-3">Pilih divisi mana saja yang berkolaborasi dalam proker ini.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        @foreach($otherDivisions as $div)
+                        <label class="flex items-center p-3 border border-slate-200 rounded-xl bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="checkbox" name="partner_divisions[]" value="{{ $div->id }}" 
+                                class="division-checkbox w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500"
+                                {{ collect(old('partner_divisions', $proker->partnerDivisions->pluck('id')->toArray()))->contains($div->id) ? 'checked' : '' }}>
+                            <span class="ml-2 text-sm font-medium text-slate-700">{{ $div->name }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+                    @error('partner_divisions')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div id="collaborators-container" class="hidden mt-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Pilih Anggota Divisi Mitra <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-slate-500 mb-3">Pilih anggota dari divisi mitra yang terlibat langsung.</p>
+                    <div id="collaborators-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Checkboxes will be rendered here via JS -->
+                    </div>
+                    @error('collaborators')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- Tujuan & Sasaran --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="objective" class="block text-sm font-bold text-slate-700 mb-1.5">Tujuan Program Kerja <span class="text-red-500">*</span></label>
+                    <textarea name="objective" id="objective" rows="3" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors placeholder-slate-400" placeholder="Contoh: Meningkatkan kualitas akademik mahasiswa...">{{ old('objective', $proker->objective) }}</textarea>
+                    @error('objective')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="target_audience" class="block text-sm font-bold text-slate-700 mb-1.5">Sasaran Program Kerja <span class="text-red-500">*</span></label>
+                    <textarea name="target_audience" id="target_audience" rows="3" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors placeholder-slate-400" placeholder="Contoh: Seluruh Mahasiswa Sistem Informasi...">{{ old('target_audience', $proker->target_audience) }}</textarea>
+                    @error('target_audience')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             {{-- Deskripsi --}}
             <div>
                 <label for="description" class="block text-sm font-bold text-slate-700 mb-1.5">Deskripsi Singkat</label>
-                <textarea name="description" id="description" rows="3" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors" placeholder="Tuliskan tujuan atau deskripsi singkat program kerja ini...">{{ old('description', $proker->description) }}</textarea>
+                <textarea name="description" id="description" rows="4" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors placeholder-slate-400" placeholder="Jelaskan secara singkat mengenai program kerja ini (opsional)...">{{ old('description', $proker->description) }}</textarea>
                 @error('description')
                     <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -119,8 +188,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6" x-data="{ startDate: '{{ old('start_date', $proker->start_date ? $proker->start_date->format('Y-m-d') : '') }}' }">
                 {{-- Tanggal Mulai --}}
                 <div>
-                    <label for="start_date" class="block text-sm font-bold text-slate-700 mb-1.5">Tanggal Mulai</label>
-                    <input type="date" name="start_date" id="start_date" x-model="startDate" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
+                    <label for="start_date" class="block text-sm font-bold text-slate-700 mb-1.5">Tanggal Mulai <span class="text-red-500">*</span></label>
+                    <input type="date" name="start_date" id="start_date" x-model="startDate" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
                     @error('start_date')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -128,8 +197,8 @@
 
                 {{-- Tanggal Selesai --}}
                 <div>
-                    <label for="end_date" class="block text-sm font-bold text-slate-700 mb-1.5">Tanggal Selesai</label>
-                    <input type="date" name="end_date" id="end_date" :min="startDate" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors" value="{{ old('end_date', $proker->end_date ? $proker->end_date->format('Y-m-d') : '') }}">
+                    <label for="end_date" class="block text-sm font-bold text-slate-700 mb-1.5">Tanggal Selesai <span class="text-red-500">*</span></label>
+                    <input type="date" name="end_date" id="end_date" :min="startDate" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors" value="{{ old('end_date', $proker->end_date ? $proker->end_date->format('Y-m-d') : '') }}">
                     @error('end_date')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -156,19 +225,94 @@
     document.addEventListener('DOMContentLoaded', function() {
         const typeSelect = document.getElementById('type');
         const eventFields = document.getElementById('event-fields');
-        const nonEventFields = document.getElementById('nonevent-fields');
+        const internalFields = document.getElementById('internal-fields');
+        const kolaborasiFields = document.getElementById('kolaborasi-fields');
+        
+        const divisionCheckboxes = document.querySelectorAll('.division-checkbox');
+        const collaboratorsContainer = document.getElementById('collaborators-container');
+        const collaboratorsList = document.getElementById('collaborators-list');
+        
+        // Pass existing collaborators from server
+        const existingCollaborators = @json(old('collaborators', $proker->collaborators->pluck('id')->toArray()));
 
         function toggleFields() {
-            if (typeSelect.value === 'event') {
+            const type = typeSelect.value;
+            
+            if (type === 'event') {
                 eventFields.classList.remove('hidden');
-                nonEventFields.classList.add('hidden');
-            } else {
+                internalFields.classList.add('hidden');
+                kolaborasiFields.classList.add('hidden');
+                
+                document.getElementById('ketupel_id').setAttribute('required', 'required');
+                document.getElementById('waketupel_id').setAttribute('required', 'required');
+                document.getElementById('pj_id').removeAttribute('required');
+            } else if (type === 'internal') {
                 eventFields.classList.add('hidden');
-                nonEventFields.classList.remove('hidden');
+                internalFields.classList.remove('hidden');
+                kolaborasiFields.classList.add('hidden');
+                
+                document.getElementById('ketupel_id').removeAttribute('required');
+                document.getElementById('waketupel_id').removeAttribute('required');
+                document.getElementById('pj_id').setAttribute('required', 'required');
+            } else if (type === 'kolaborasi') {
+                eventFields.classList.add('hidden');
+                internalFields.classList.remove('hidden');
+                kolaborasiFields.classList.remove('hidden');
+                
+                document.getElementById('ketupel_id').removeAttribute('required');
+                document.getElementById('waketupel_id').removeAttribute('required');
+                document.getElementById('pj_id').setAttribute('required', 'required');
+                
+                // Fetch members if not already fetched
+                fetchDivisionMembers();
+            }
+        }
+
+        async function fetchDivisionMembers() {
+            const selectedDivisions = Array.from(divisionCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selectedDivisions.length === 0) {
+                collaboratorsContainer.classList.add('hidden');
+                collaboratorsList.innerHTML = '';
+                return;
+            }
+
+            collaboratorsContainer.classList.remove('hidden');
+            collaboratorsList.innerHTML = '<div class="col-span-full text-center py-2 text-sm text-slate-500">Memuat anggota...</div>';
+
+            try {
+                let allMembers = [];
+                for (const divId of selectedDivisions) {
+                    const response = await fetch(`/kepengurusan/api/divisions/${divId}/members`);
+                    const data = await response.json();
+                    allMembers = allMembers.concat(data);
+                }
+
+                if (allMembers.length === 0) {
+                    collaboratorsList.innerHTML = '<div class="col-span-full text-sm text-slate-500">Tidak ada anggota di divisi yang dipilih.</div>';
+                    return;
+                }
+
+                collaboratorsList.innerHTML = allMembers.map(member => {
+                    const isChecked = existingCollaborators.includes(member.id) ? 'checked' : '';
+                    return `
+                    <label class="flex items-center p-3 border border-slate-200 rounded-xl bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" name="collaborators[]" value="${member.id}" ${isChecked} class="w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500">
+                        <span class="ml-2 text-sm font-medium text-slate-700">${member.name}</span>
+                    </label>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error fetching members:', error);
+                collaboratorsList.innerHTML = '<div class="col-span-full text-sm text-red-500">Gagal memuat anggota.</div>';
             }
         }
 
         typeSelect.addEventListener('change', toggleFields);
+        divisionCheckboxes.forEach(cb => cb.addEventListener('change', fetchDivisionMembers));
+        
         toggleFields();
     });
 </script>

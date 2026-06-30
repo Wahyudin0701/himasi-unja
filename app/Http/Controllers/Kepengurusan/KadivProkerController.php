@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Kepengurusan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kepengurusan\Period;
+use App\Models\Kepengurusan\Division;
+use App\Models\User;
 
 class KadivProkerController extends Controller
 {
@@ -36,6 +38,18 @@ class KadivProkerController extends Controller
     }
 
     /**
+     * API: Mengambil daftar anggota sebuah divisi
+     */
+    public function getDivisionMembers(Division $division)
+    {
+        $members = User::whereHas('memberships', function($q) use ($division) {
+            $q->where('division_id', $division->id);
+        })->orderBy('name')->get(['id', 'name']);
+
+        return response()->json($members);
+    }
+
+    /**
      * Menampilkan form tambah Program Kerja
      */
     public function create()
@@ -57,16 +71,24 @@ class KadivProkerController extends Controller
 
         $division = $membership->division;
         
-        $divisionMembers = \App\Models\User::whereHas('memberships', function($q) use ($division) {
+        $divisionMembers = User::whereHas('memberships', function($q) use ($division) {
             $q->where('division_id', $division->id);
         })->orderBy('name')->get();
 
-        $allEligibleMembers = \App\Models\User::with(['memberships.division'])
+        $allEligibleMembers = User::with(['memberships.division'])
             ->whereNotIn('global_role', ['super_admin', 'pembina', 'dp', 'kahim', 'wakahim', 'sekretaris', 'bendahara'])
             ->orderBy('name')
             ->get();
+            
+        $otherDivisions = Division::where('id', '!=', $division->id)
+            ->where('period_id', $activePeriod->id)
+            ->where('type', 'divisi')
+            ->orderBy('name')
+            ->get();
+            
+        $subDivisions = \App\Models\Kepengurusan\SubDivision::where('division_id', $division->id)->orderBy('name')->get();
 
-        return view('kepengurusan.kadiv.proker.create', compact('division', 'divisionMembers', 'allEligibleMembers'));
+        return view('kepengurusan.kadiv.proker.create', compact('division', 'divisionMembers', 'allEligibleMembers', 'otherDivisions', 'subDivisions'));
     }
 
     /**
@@ -83,13 +105,21 @@ class KadivProkerController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:event,non_event',
+            'type' => 'required|in:event,internal,kolaborasi',
             'description' => 'nullable|string',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'objective' => 'nullable|string',
+            'target_audience' => 'nullable|string',
+            'sub_division_id' => 'nullable|exists:sub_divisions,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'budget_plan' => 'nullable|numeric|min:0',
             'ketupel_id' => 'nullable|required_if:type,event|exists:users,id',
             'waketupel_id' => 'nullable|required_if:type,event|exists:users,id',
-            'pj_id' => 'nullable|required_if:type,non_event|exists:users,id',
+            'pj_id' => 'nullable|required_if:type,internal,kolaborasi|exists:users,id',
+            'partner_divisions' => 'nullable|array',
+            'partner_divisions.*' => 'exists:divisions,id',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'exists:users,id',
         ]);
         
         $validated['status'] = 'planning';
@@ -97,15 +127,24 @@ class KadivProkerController extends Controller
         $division = $membership->division;
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $division, $activePeriod, $user) {
-            $prokerData = collect($validated)->except(['ketupel_id', 'waketupel_id', 'pj_id'])->toArray();
+            $prokerData = collect($validated)->except(['ketupel_id', 'waketupel_id', 'pj_id', 'partner_divisions', 'collaborators'])->toArray();
             
-            if ($validated['type'] === 'non_event') {
+            if ($validated['type'] === 'internal' || $validated['type'] === 'kolaborasi') {
                 $prokerData['pic_id'] = $validated['pj_id'];
             } else {
                 $prokerData['pic_id'] = $validated['ketupel_id'];
             }
 
             $proker = $division->workPrograms()->create($prokerData);
+
+            if ($validated['type'] === 'kolaborasi') {
+                if (!empty($validated['partner_divisions'])) {
+                    $proker->partnerDivisions()->sync($validated['partner_divisions']);
+                }
+                if (!empty($validated['collaborators'])) {
+                    $proker->collaborators()->sync($validated['collaborators']);
+                }
+            }
 
             if ($validated['type'] === 'event') {
                 $event = \App\Models\Kepanitiaan\Event::create([
@@ -163,12 +202,12 @@ class KadivProkerController extends Controller
             $q->where('division_id', $membership->division_id);
         })->orderBy('name')->get();
 
-        $tasks = \App\Models\ProgressReport\WorkTask::where('work_program_id', $proker->id)
-            ->with(['assignee'])
+        $logs = \App\Models\Kepengurusan\ProkerLog::where('work_program_id', $proker->id)
+            ->with(['author'])
             ->orderBy('created_at', 'desc')
             ->get();
         
-        return view('kepengurusan.kadiv.proker.show', compact('proker', 'divisionMembers', 'tasks'));
+        return view('kepengurusan.kadiv.proker.show', compact('proker', 'divisionMembers', 'logs'));
     }
 
     /**
@@ -318,8 +357,14 @@ class KadivProkerController extends Controller
             $q->where('division_id', $division->id);
         })->orderBy('name')->get();
 
-        $allEligibleMembers = \App\Models\User::with(['memberships.division'])
+        $allEligibleMembers = User::with(['memberships.division'])
             ->whereNotIn('global_role', ['super_admin', 'pembina', 'dp', 'kahim', 'wakahim', 'sekretaris', 'bendahara'])
+            ->orderBy('name')
+            ->get();
+
+        $otherDivisions = Division::where('id', '!=', $division->id)
+            ->where('period_id', $activePeriod->id)
+            ->where('type', 'divisi')
             ->orderBy('name')
             ->get();
 
@@ -337,7 +382,9 @@ class KadivProkerController extends Controller
             }
         }
 
-        return view('kepengurusan.kadiv.proker.edit', compact('proker', 'division', 'divisionMembers', 'allEligibleMembers', 'ketupelId', 'waketupelId', 'pjId'));
+        $proker->load(['partnerDivisions', 'collaborators']);
+        $subDivisions = \App\Models\Kepengurusan\SubDivision::where('division_id', $division->id)->orderBy('name')->get();
+        return view('kepengurusan.kadiv.proker.edit', compact('proker', 'division', 'divisionMembers', 'allEligibleMembers', 'otherDivisions', 'ketupelId', 'waketupelId', 'pjId', 'subDivisions'));
     }
 
     /**
@@ -359,25 +406,41 @@ class KadivProkerController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:event,non_event',
+            'type' => 'required|in:event,internal,kolaborasi',
             'description' => 'nullable|string',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'objective' => 'nullable|string',
+            'target_audience' => 'nullable|string',
+            'sub_division_id' => 'nullable|exists:sub_divisions,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'budget_plan' => 'nullable|numeric|min:0',
             'ketupel_id' => 'nullable|required_if:type,event|exists:users,id',
             'waketupel_id' => 'nullable|required_if:type,event|exists:users,id',
-            'pj_id' => 'nullable|required_if:type,non_event|exists:users,id',
+            'pj_id' => 'nullable|required_if:type,internal,kolaborasi|exists:users,id',
+            'partner_divisions' => 'nullable|array',
+            'partner_divisions.*' => 'exists:divisions,id',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'exists:users,id',
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $proker, $activePeriod, $user) {
-            $prokerData = collect($validated)->except(['ketupel_id', 'waketupel_id', 'pj_id'])->toArray();
+            $prokerData = collect($validated)->except(['ketupel_id', 'waketupel_id', 'pj_id', 'partner_divisions', 'collaborators'])->toArray();
             
-            if ($validated['type'] === 'non_event') {
+            if ($validated['type'] === 'internal' || $validated['type'] === 'kolaborasi') {
                 $prokerData['pic_id'] = $validated['pj_id'];
             } else {
                 $prokerData['pic_id'] = $validated['ketupel_id'];
             }
 
             $proker->update($prokerData);
+
+            if ($validated['type'] === 'kolaborasi') {
+                $proker->partnerDivisions()->sync($validated['partner_divisions'] ?? []);
+                $proker->collaborators()->sync($validated['collaborators'] ?? []);
+            } else {
+                $proker->partnerDivisions()->detach();
+                $proker->collaborators()->detach();
+            }
 
             if ($validated['type'] === 'event') {
                 $event = \App\Models\Kepanitiaan\Event::where('work_program_id', $proker->id)->first();

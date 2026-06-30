@@ -86,13 +86,16 @@ class KadivDashboardController extends Controller
         })->with(['user', 'orgPosition'])->get();
 
         foreach ($members as $member) {
-            $member->tasks = \App\Models\ProgressReport\WorkTask::whereHas('workProgram', function($q) use ($division) {
-                    $q->where('type', 'non-event')
-                      ->where('division_id', $division->id);
-                })
-                ->where('assigned_to', $member->user_id)
-                ->orderBy('due_date', 'asc')
-                ->get();
+            $member->prokers = \App\Models\Kepengurusan\WorkProgram::where(function($q) use ($division, $member) {
+                $q->where('division_id', $division->id)
+                  ->whereIn('type', ['internal', 'kolaborasi'])
+                  ->where('pic_id', $member->user_id);
+            })->orWhere(function($q) use ($member) {
+                $q->where('type', 'kolaborasi')
+                  ->whereHas('collaborators', function($query) use ($member) {
+                      $query->where('users.id', $member->user_id);
+                  });
+            })->get();
         }
 
         return view('kepengurusan.kadiv.progres-divisi', compact('division', 'members'));

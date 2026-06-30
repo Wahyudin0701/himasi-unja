@@ -175,9 +175,9 @@
                     @endif
 
                     @if(auth()->user()->global_role === 'anggota')
-                    <a href="{{ route('kepengurusan.anggota.proker.kanban') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.anggota.proker.*') ? 'nav-active' : '' }}">
-                        <i class="ph-fill ph-kanban nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
-                        Kanban Proker
+                    <a href="{{ route('kepengurusan.anggota.proker.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.anggota.proker.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-notebook nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Jurnal Proker
                     </a>
                     @endif
 

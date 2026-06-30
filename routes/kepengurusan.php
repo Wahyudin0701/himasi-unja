@@ -12,6 +12,9 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
     // Buku Direktori (Global)
     Route::get('/directory', [\App\Http\Controllers\Kepengurusan\DirectoryController::class, 'index'])->name('kepengurusan.directory.index');
 
+    // API Routes untuk Frontend Dinamis
+    Route::get('/api/divisions/{division}/members', [\App\Http\Controllers\Kepengurusan\KadivProkerController::class, 'getDivisionMembers'])->name('kepengurusan.api.divisions.members');
+
     // Sekretaris Routes
     Route::prefix('sekretaris')->middleware(['role:sekretaris,kahim,wakahim,bendahara'])->name('kepengurusan.sekretaris.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\SekretarisDashboardController::class, 'index'])->name('dashboard');
@@ -23,10 +26,10 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
     Route::prefix('anggota')->middleware(['role:anggota'])->name('kepengurusan.anggota.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\AnggotaDashboardController::class, 'index'])->name('dashboard');
         
-        // Kanban Proker Non-Event
-        Route::get('/proker', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'index'])->name('proker.kanban');
-        Route::get('/proker/{task}', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'show'])->name('proker.show');
-        Route::patch('/proker/{task}/submit-review', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'submitReview'])->name('proker.submit-review');
+        // Jurnal Proker Non-Event
+        Route::get('/proker', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'index'])->name('proker.index');
+        Route::get('/proker/{proker}', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'show'])->name('proker.show');
+        Route::post('/proker/{proker}/logs', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'storeLog'])->name('proker.logs.store');
     });
 
     // Kadiv Routes
@@ -43,15 +46,9 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
         Route::put('/proker/{proker}', [KadivProkerController::class, 'update'])->name('proker.update');
         Route::patch('/proker/{proker}/cancel', [KadivProkerController::class, 'cancel'])->name('proker.cancel');
         
-        // Task Management for Proker Non-Event
-        Route::post('/proker/{proker}/tasks', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerTaskController::class, 'store'])->name('proker.tasks.store');
-        Route::put('/proker/{proker}/tasks/{task}', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerTaskController::class, 'update'])->name('proker.tasks.update');
-        Route::delete('/proker/{proker}/tasks/{task}', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerTaskController::class, 'destroy'])->name('proker.tasks.destroy');
-        
-        // Review Proker Non-Event
+        // Review Jurnal Proker Non-Event
         Route::get('/review-proker', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'index'])->name('proker.review.index');
-        Route::patch('/review-proker/{task}/approve', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'approve'])->name('proker.review.approve');
-        Route::patch('/review-proker/{task}/revise', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'revise'])->name('proker.review.revise');
+        Route::patch('/review-proker/logs/{log}/review', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'reviewLog'])->name('proker.review.log');
     });
 
     // Messaging Routes (accessible by all authenticated users)

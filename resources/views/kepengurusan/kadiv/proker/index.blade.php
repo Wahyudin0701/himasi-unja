@@ -57,7 +57,13 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <p class="text-sm font-bold text-slate-700">
-                            {{ $proker->type === 'event' ? 'Event' : 'Non-Event' }}
+                            @if($proker->type === 'event')
+                                Event Kepanitiaan
+                            @elseif($proker->type === 'kolaborasi')
+                                Kolaborasi
+                            @else
+                                Internal Divisi
+                            @endif
                         </p>
                     </td>
                     <td class="px-6 py-4 text-center">
