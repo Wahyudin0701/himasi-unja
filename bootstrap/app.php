@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\GlobalRole::class,
+            'committee.role' => \App\Http\Middleware\CheckCommitteeRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

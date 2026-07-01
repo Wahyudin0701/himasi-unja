@@ -20,6 +20,12 @@
                 Pantau seluruh Rencana Anggaran Biaya yang diajukan oleh divisi untuk {{ $event->name }}.
             </p>
         </div>
+        <div>
+            <a href="{{ route('kepanitiaan.ketupel.rab.print', $event) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                <i class="ph-bold ph-download-simple text-lg"></i>
+                Download RAB
+            </a>
+        </div>
     </div>
 
     <!-- Filter & Stats -->

@@ -255,12 +255,15 @@
                         @foreach($activeCommittees as $committee)
                             @php
                                 $roleSlug = $committee->role->slug;
-                                $isKetupel = in_array($roleSlug, ['ketua-pelaksana', 'wakil-ketua-pelaksana', 'sekretaris-pelaksana', 'bendahara-pelaksana']);
+                                $isKetupel = in_array($roleSlug, ['ketua-pelaksana', 'wakil-ketua-pelaksana', 'sekretaris-pelaksana']);
+                                $isBenpel = $roleSlug === 'bendahara-pelaksana';
                                 $isCO = $roleSlug === 'co-divisi';
-                                $roleNameShort = $roleSlug === 'wakil-ketua-pelaksana' ? 'Waketupel' : 'Ketupel';
+                                $roleNameShort = $roleSlug === 'wakil-ketua-pelaksana' ? 'Waketupel' : ($roleSlug === 'sekretaris-pelaksana' ? 'Sekpel' : 'Ketupel');
                                 
                                 if ($isKetupel) {
                                     $groupLabel = $roleNameShort . ' ' . $committee->event->name;
+                                } elseif ($isBenpel) {
+                                    $groupLabel = 'Benpel ' . $committee->event->name;
                                 } elseif ($isCO) {
                                     $divName = $committee->division ? $committee->division->name : '';
                                     $groupLabel = trim('CO ' . $divName) . ' ' . $committee->event->name;
@@ -286,6 +289,11 @@
                         </p>
                         <div class="space-y-1.5">
                             @if($isKetupel)
+                            @php
+                                $hasBenpel = $committee->event->committees->contains(function ($c) {
+                                    return $c->role && $c->role->slug === 'bendahara-pelaksana';
+                                });
+                            @endphp
                             <a href="{{ route('kepanitiaan.ketupel.dashboard', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.dashboard') && $isThisEvent ? 'nav-active' : '' }}">
                                 <i class="ph-fill ph-squares-four nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                                 Dashboard {{ $roleNameShort }}
@@ -298,6 +306,13 @@
                                 <i class="ph-fill ph-chart-line-up nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                                 Progres Semua Divisi
                             </a>
+                            @if(!$hasBenpel)
+                            <a href="{{ route('kepanitiaan.ketupel.rab.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.rab.*') && $isThisEvent ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-money nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                RAB Semua Divisi
+                            </a>
+                            @endif
+                            @elseif($isBenpel)
                             <a href="{{ route('kepanitiaan.ketupel.rab.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.rab.*') && $isThisEvent ? 'nav-active' : '' }}">
                                 <i class="ph-fill ph-money nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                                 RAB Semua Divisi
