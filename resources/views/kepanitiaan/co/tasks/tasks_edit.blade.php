@@ -5,7 +5,7 @@
 @section('content')
 <div class="w-full pb-10">
     <div class="mb-6 flex justify-end">
-        <a href="{{ route('kepanitiaan.co.dashboard') }}" class="text-brand-600 hover:text-brand-700 font-semibold text-sm flex items-center gap-1.5 w-fit">
+        <a href="{{ route('kepanitiaan.co.dashboard', ['event' => $event->id, 'division' => $division->id]) }}" class="text-brand-600 hover:text-brand-700 font-semibold text-sm flex items-center gap-1.5 w-fit">
             <i class="ph ph-caret-left"></i> Kembali
         </a>
     </div>
@@ -207,7 +207,7 @@
                                 </h4>
                                 @if(isset($sprints) && $sprints->isEmpty())
                                     <div class="p-4 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm">
-                                        <i class="ph-fill ph-warning-circle text-lg mb-1 align-middle"></i> Anda belum mengatur jadwal Sprint untuk divisi ini. <a href="{{ route('kepanitiaan.co.sprints.index') }}" class="font-bold underline hover:text-amber-800">Atur sekarang</a>
+                                        <i class="ph-fill ph-warning-circle text-lg mb-1 align-middle"></i> Anda belum mengatur jadwal Sprint untuk divisi ini. <a href="{{ route('kepanitiaan.co.sprints.index', ['event' => $task->event_id, 'division' => $task->event_division_id]) }}" class="font-bold underline hover:text-amber-800">Atur sekarang</a>
                                     </div>
                                 @else
                                     <div>
@@ -238,7 +238,7 @@
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
-                    <a href="{{ route('kepanitiaan.co.dashboard') }}" class="px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Batal</a>
+                    <a href="{{ route('kepanitiaan.co.dashboard', ['event' => $event->id, 'division' => $division->id]) }}" class="px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Batal</a>
                     <button type="submit" class="px-6 py-3 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors shadow-lg shadow-brand-500/30 flex items-center gap-2">
                         <i class="ph ph-check-circle text-lg"></i> Update Tugas
                     </button>

@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Proker Tanggung Jawab Saya')
+@section('title', 'Proker Saya')
 
 @section('breadcrumbs')
     <span class="text-slate-700">Program Kerja Non-Event</span>
@@ -12,53 +12,15 @@
     <div class="space-y-6">
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">Anggota Divisi</p>
+
             <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                Tanggung Jawab <span class="gradient-text">Proker</span>
+                Proker <span class="gradient-text">Saya</span>
             </h1>
             <p class="text-sm text-slate-500 mt-1.5 font-medium">Pantau dan kelola laporan progres program kerja yang menjadi tanggung jawab Anda.</p>
         </div>
     </div>
 
-    <!-- Statistik -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
-                    <i class="ph-bold ph-folder text-brand-600 text-xl"></i>
-                </div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Proker</h3>
-            </div>
-            <p class="text-3xl font-black text-slate-900">{{ $totalProkers }}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                    <i class="ph-bold ph-calendar-blank text-slate-600 text-xl"></i>
-                </div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Planning</h3>
-            </div>
-            <p class="text-3xl font-black text-slate-900">{{ $planningProkers }}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <i class="ph-bold ph-spinner text-blue-600 text-xl"></i>
-                </div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ongoing</h3>
-            </div>
-            <p class="text-3xl font-black text-slate-900">{{ $ongoingProkers }}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <i class="ph-bold ph-check-circle text-emerald-600 text-xl"></i>
-                </div>
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed</h3>
-            </div>
-            <p class="text-3xl font-black text-slate-900">{{ $completedProkers }}</p>
-        </div>
-    </div>
+
 
     <!-- Daftar Proker -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full mb-6">

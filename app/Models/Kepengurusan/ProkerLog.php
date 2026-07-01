@@ -16,6 +16,7 @@ class ProkerLog extends Model
         'content',
         'progress_update',
         'attachment',
+        'link',
         'status',
         'feedback',
     ];

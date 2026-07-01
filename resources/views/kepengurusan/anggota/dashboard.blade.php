@@ -32,12 +32,13 @@
         @php
             $firstRole = $roles->first();
             $event = $firstRole->event;
-            $isKetupel = $roles->contains(fn($r) => in_array($r->role?->slug, ['ketua-pelaksana', 'wakil-ketua-pelaksana']));
+            $ketupelRoleMatch = $roles->first(fn($r) => in_array($r->role?->slug, ['ketua-pelaksana', 'wakil-ketua-pelaksana']));
+            $isKetupel = $ketupelRoleMatch !== null;
             $isCO = $roles->contains(fn($r) => $r->role?->slug === 'co-divisi');
             
             if ($isKetupel) {
-                $roleLabel = 'Ketua Pelaksana';
-                $dashboardRoute = route('kepanitiaan.ketupel.dashboard');
+                $roleLabel = $ketupelRoleMatch->role?->name ?? 'Ketua Pelaksana';
+                $dashboardRoute = route('kepanitiaan.ketupel.dashboard', ['event' => $event->id]);
                 $badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
                 $bannerColor = 'bg-rose-50 border-rose-200';
                 $iconColor = 'text-rose-500 bg-rose-100';
@@ -45,7 +46,7 @@
                 $icon = 'ph-crown-simple';
             } elseif ($isCO) {
                 $roleLabel = 'Koordinator Divisi';
-                $dashboardRoute = route('kepanitiaan.co.dashboard');
+                $dashboardRoute = route('kepanitiaan.co.dashboard', ['event' => $event->id, 'division' => $firstRole->event_division_id]);
                 $badgeColor = 'bg-violet-100 text-violet-700 border-violet-200';
                 $bannerColor = 'bg-violet-50 border-violet-200';
                 $iconColor = 'text-violet-500 bg-violet-100';
@@ -53,7 +54,7 @@
                 $icon = 'ph-users-three';
             } else {
                 $roleLabel = $firstRole->role?->name ?? 'Panitia';
-                $dashboardRoute = route('kepanitiaan.anggota.dashboard');
+                $dashboardRoute = route('kepanitiaan.anggota.dashboard', ['event' => $event->id, 'division' => $firstRole->event_division_id]);
                 $badgeColor = 'bg-amber-100 text-amber-700 border-amber-200';
                 $bannerColor = 'bg-amber-50 border-amber-200';
                 $iconColor = 'text-amber-500 bg-amber-100';

@@ -17,17 +17,9 @@ class AnggotaProkerController extends Controller
     {
         $user = auth()->user();
 
-        // Ambil proker internal atau kolaborasi yang mana user adalah PIC-nya atau sebagai collaborator
-        $prokers = WorkProgram::where(function($query) use ($user) {
-                $query->where('pic_id', $user->id)
-                      ->whereIn('type', ['internal', 'kolaborasi']);
-            })
-            ->orWhere(function($query) use ($user) {
-                $query->whereHas('collaborators', function($q) use ($user) {
-                    $q->where('users.id', $user->id);
-                })
-                ->where('type', 'kolaborasi');
-            })
+        // Ambil proker internal atau kolaborasi yang mana user adalah PIC-nya
+        $prokers = WorkProgram::where('pic_id', $user->id)
+            ->whereIn('type', ['internal', 'kolaborasi'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -59,6 +51,23 @@ class AnggotaProkerController extends Controller
     }
 
     /**
+     * Tampilkan halaman jurnal progres.
+     */
+    public function progress(WorkProgram $proker)
+    {
+        $user = auth()->user();
+
+        $isCollaborator = $proker->type === 'kolaborasi' && $proker->collaborators()->where('users.id', $user->id)->exists();
+        if ($proker->pic_id !== $user->id && !$isCollaborator) {
+            abort(403, 'Anda tidak memiliki akses ke program kerja ini.');
+        }
+
+        $logs = $proker->logs()->orderBy('created_at', 'desc')->get();
+
+        return view('kepengurusan.anggota.proker.progress', compact('user', 'proker', 'logs'));
+    }
+
+    /**
      * Ajukan jurnal laporan progres baru
      */
     public function storeLog(Request $request, WorkProgram $proker)
@@ -74,6 +83,7 @@ class AnggotaProkerController extends Controller
             'content' => 'required|string',
             'progress_update' => 'required|integer|min:0|max:100',
             'attachment' => 'nullable|file|max:10240',
+            'link' => 'nullable|url',
         ]);
 
         $attachmentPath = null;
@@ -87,7 +97,8 @@ class AnggotaProkerController extends Controller
             'content' => $validated['content'],
             'progress_update' => $validated['progress_update'],
             'attachment' => $attachmentPath,
-            'status' => 'pending',
+            'link' => $validated['link'] ?? null,
+            'status' => 'approved',
         ]);
 
         // Ubah status proker ke ongoing jika masih planning
@@ -95,6 +106,6 @@ class AnggotaProkerController extends Controller
             $proker->update(['status' => 'ongoing']);
         }
 
-        return back()->with('success', 'Laporan progres berhasil diajukan dan menunggu reviu Kadiv.');
+        return redirect()->route('kepengurusan.anggota.proker.show', $proker->id)->with('success', 'Laporan progres berhasil ditambahkan.');
     }
 }

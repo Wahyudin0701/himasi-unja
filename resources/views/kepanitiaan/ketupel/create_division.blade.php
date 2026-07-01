@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Tambah Divisi - ' . $event->name)
+@section('title', 'Tambah Divisi')
 
 @section('breadcrumbs')
     <a href="{{ route('kepanitiaan.ketupel.manage-team', $event) }}" class="text-slate-500 hover:text-brand-600 transition-colors">Kelola Tim</a>
@@ -13,10 +13,10 @@
         div_co_type: 'existing',
         div_co_user_id: '',
         div_anggota: [
-            { id: 1, type: 'existing', user_id: '', name: '', email: '' }
+            { id: 1, type: 'existing', user_id: '', name: '', email_prefix: '', nim: '', angkatan: '', password: '' }
         ],
         addAnggota() {
-            this.div_anggota.push({ id: Date.now(), type: 'existing', user_id: '', name: '', email: '' });
+            this.div_anggota.push({ id: Date.now(), type: 'existing', user_id: '', name: '', email_prefix: '', nim: '', angkatan: '', password: '' });
         },
         removeAnggota(index) {
             this.div_anggota.splice(index, 1);
@@ -55,11 +55,10 @@
                 <div class="mb-10">
                     <div class="flex items-center gap-3 mb-5">
                         <div class="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center text-sm font-black shadow-sm">1</div>
-                        <h4 class="text-lg font-bold text-slate-900">Informasi Divisi</h4>
+                        <h4 class="text-lg font-bold text-slate-900">Nama Divisi <span class="text-rose-500">*</span></h4>
                     </div>
-                    <div class="bg-slate-50/70 p-5 md:p-6 rounded-2xl border border-slate-100">
+                    <div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Nama Divisi <span class="text-rose-500">*</span></label>
                             <input type="text" name="name" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-violet-500 focus:border-violet-500 block p-3.5 transition-all shadow-sm" placeholder="Misal: Divisi Acara" required>
                         </div>
                     </div>
@@ -69,24 +68,13 @@
                 <div class="mb-10">
                     <div class="flex items-center gap-3 mb-5">
                         <div class="w-8 h-8 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center text-sm font-black shadow-sm">2</div>
-                        <h4 class="text-lg font-bold text-slate-900">Penunjukan Koordinator (CO)</h4>
+                        <h4 class="text-lg font-bold text-slate-900">Penunjukan Koordinator (CO) <span class="text-rose-500">*</span></h4>
                     </div>
-                    <div class="bg-slate-50/70 p-5 md:p-6 rounded-2xl border border-slate-100">
-                        <!-- Tipe Input CO -->
-                        <div class="flex flex-wrap gap-6 mb-5">
-                            <label class="flex items-center gap-2.5 cursor-pointer group">
-                                <input type="radio" name="co_type" value="existing" x-model="div_co_type" class="text-brand-600 focus:ring-brand-500 w-4.5 h-4.5 border-slate-300">
-                                <span class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition-colors">Pilih Akun Terdaftar</span>
-                            </label>
-                            <label class="flex items-center gap-2.5 cursor-pointer group">
-                                <input type="radio" name="co_type" value="new" x-model="div_co_type" class="text-brand-600 focus:ring-brand-500 w-4.5 h-4.5 border-slate-300">
-                                <span class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition-colors">Buat Akun Baru</span>
-                            </label>
-                        </div>
-
-                        <!-- Input CO Existing -->
-                        <div x-show="div_co_type === 'existing'" x-transition class="w-full">
-                            <select name="co_user_id" x-model="div_co_user_id" class="w-full bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3.5 transition-all shadow-sm" :required="div_co_type === 'existing'">
+                    <div>
+                        <!-- Input CO -->
+                        <div class="w-full">
+                            <input type="hidden" name="co_type" value="existing">
+                            <select name="co_user_id" x-model="div_co_user_id" class="w-full bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3.5 transition-all shadow-sm" required>
                                 <option value="">-- Pilih Anggota HIMASI --</option>
                                 @foreach($allUsers as $u)
                                     @php
@@ -96,47 +84,34 @@
                                 @endforeach
                             </select>
                         </div>
-
-                        <!-- Input CO New -->
-                        <div x-show="div_co_type === 'new'" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                            <div>
-                                <input type="text" name="co_name" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3.5 transition-all shadow-sm" placeholder="Nama Lengkap CO" :required="div_co_type === 'new'">
-                            </div>
-                            <div>
-                                <input type="email" name="co_email" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3.5 transition-all shadow-sm" placeholder="Email CO" :required="div_co_type === 'new'">
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Bagian 3: Anggota -->
                 <div>
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-black shadow-sm">3</div>
-                            <h4 class="text-lg font-bold text-slate-900">Anggota Divisi</h4>
-                        </div>
-                        <button type="button" @click="addAnggota()" class="text-sm font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
-                            <i class="ph-bold ph-plus"></i> Tambah Baris Anggota
-                        </button>
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-black shadow-sm">3</div>
+                        <h4 class="text-lg font-bold text-slate-900">Anggota Divisi <span class="text-rose-500">*</span></h4>
                     </div>
 
                     <div class="space-y-4">
                         <template x-for="(anggota, index) in div_anggota" :key="anggota.id">
-                            <div class="flex flex-col md:flex-row gap-4 bg-slate-50/70 p-4 md:p-5 rounded-2xl border border-slate-100 items-start md:items-center relative transition-all hover:border-emerald-200">
+                            <div class="flex flex-col gap-3 relative transition-all mb-6 pb-6 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
                                 
                                 <!-- Tipe Input Anggota -->
-                                <div class="shrink-0 w-full md:w-40">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 md:hidden">Tipe Input</label>
-                                    <select x-model="anggota.type" :name="'anggota['+index+'][type]'" class="w-full bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm">
-                                        <option value="existing">Pilih Terdaftar</option>
-                                        <option value="new">Akun Baru</option>
-                                    </select>
+                                <div class="flex flex-wrap gap-6 mb-2">
+                                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                                        <input type="radio" :name="'anggota['+index+'][type]'" value="existing" x-model="anggota.type" class="text-brand-600 focus:ring-brand-500 w-4.5 h-4.5 border-slate-300">
+                                        <span class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition-colors">Pilih Akun Terdaftar</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                                        <input type="radio" :name="'anggota['+index+'][type]'" value="new" x-model="anggota.type" class="text-brand-600 focus:ring-brand-500 w-4.5 h-4.5 border-slate-300">
+                                        <span class="text-sm font-bold text-slate-700 group-hover:text-brand-600 transition-colors">Buat Akun Baru</span>
+                                    </label>
                                 </div>
 
                                 <!-- Input Existing -->
-                                <div x-show="anggota.type === 'existing'" class="flex-1 w-full">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 md:hidden">Pilih Anggota</label>
+                                <div x-show="anggota.type === 'existing'" class="w-full">
                                     <select :name="'anggota['+index+'][user_id]'" x-model="anggota.user_id" class="w-full bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" :required="anggota.type === 'existing'">
                                         <option value="">-- Pilih Anggota HIMASI --</option>
                                         @foreach($allUsers as $u)
@@ -149,14 +124,28 @@
                                 </div>
 
                                 <!-- Input New -->
-                                <div x-show="anggota.type === 'new'" class="flex-1 w-full flex flex-col md:flex-row gap-4">
-                                    <div class="flex-1">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 md:hidden">Nama Lengkap</label>
-                                        <input type="text" :name="'anggota['+index+'][name]'" x-model="anggota.name" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="Nama Lengkap" :required="anggota.type === 'new'">
-                                    </div>
-                                    <div class="flex-1">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 md:hidden">Email</label>
-                                        <input type="email" :name="'anggota['+index+'][email]'" x-model="anggota.email" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="Email" :required="anggota.type === 'new'">
+                                <div x-show="anggota.type === 'new'" class="w-full flex flex-col gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="md:col-span-2">
+                                            <input type="text" :name="'anggota['+index+'][name]'" x-model="anggota.name" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="Nama Lengkap *" :required="anggota.type === 'new'">
+                                        </div>
+                                        <div>
+                                            <input type="text" :name="'anggota['+index+'][nim]'" x-model="anggota.nim" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="NIM *" :required="anggota.type === 'new'">
+                                        </div>
+                                        <div>
+                                            <input type="number" :name="'anggota['+index+'][angkatan]'" x-model="anggota.angkatan" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="Angkatan (contoh: 2023) *" :required="anggota.type === 'new'">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Email Login <span class="text-rose-500">*</span></label>
+                                            <div class="flex">
+                                                <input type="text" :name="'anggota['+index+'][email_prefix]'" x-model="anggota.email_prefix" class="w-full bg-white border border-slate-200 border-r-0 text-slate-900 text-sm rounded-l-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="contoh: budisantoso" :required="anggota.type === 'new'">
+                                                <span class="inline-flex items-center px-3 text-sm font-medium text-slate-500 bg-slate-50 border border-l-0 border-slate-200 rounded-r-xl shrink-0">@himasi.unja.ac.id</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Password Sementara <span class="text-rose-500">*</span></label>
+                                            <input type="text" :name="'anggota['+index+'][password]'" x-model="anggota.password" class="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 p-3 transition-all shadow-sm" placeholder="Masukkan password awal" :required="anggota.type === 'new'">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -167,12 +156,19 @@
                             </div>
                         </template>
                     </div>
+
+                    <!-- Tombol Tambah Baris Anggota dipindah ke bawah -->
+                    <div class="mt-4">
+                        <button type="button" @click="addAnggota()" class="text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors">
+                            + Tambah Anggota
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="px-6 py-5 md:px-8 border-t border-slate-100 bg-slate-50/50 flex flex-col-reverse sm:flex-row justify-end gap-3">
                 <a href="{{ route('kepanitiaan.ketupel.manage-team', $event) }}" class="px-6 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors text-center shadow-sm">Batal</a>
-                <button type="submit" class="px-6 py-3 text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2">
+                <button type="submit" class="px-6 py-3 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2">
                     <i class="ph-bold ph-check-circle text-lg"></i> Simpan Divisi & Tim
                 </button>
             </div>

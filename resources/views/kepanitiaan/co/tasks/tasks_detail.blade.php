@@ -8,7 +8,7 @@
 
 
     <div class="flex items-center justify-end mb-8">
-        <a href="{{ route('kepanitiaan.co.dashboard') }}" class="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5">
+        <a href="{{ route('kepanitiaan.co.dashboard', ['event' => $task->event_id, 'division' => $task->event_division_id]) }}" class="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5">
             <i class="ph-bold ph-caret-left text-base"></i> Kembali
         </a>
     </div>
@@ -17,7 +17,20 @@
         <div class="p-6 md:p-8">
             <div class="mb-8 pb-8 border-b border-slate-200">
                 <h2 class="text-3xl font-bold text-slate-900 leading-tight mb-6">{{ $task->title }}</h2>
-                <div class="grid grid-cols-2 md:flex md:flex-row gap-4">
+                <div class="grid grid-cols-2 md:flex md:flex-row gap-4 flex-wrap">
+                    <div class="md:flex-1 bg-brand-50 p-3 rounded-xl border border-brand-100">
+                        <p class="text-[10px] font-bold text-brand-400 uppercase tracking-widest mb-1">Ditugaskan Kepada</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <div class="w-5 h-5 rounded-full bg-brand-200 flex items-center justify-center shrink-0 overflow-hidden">
+                                @if($task->assignee && $task->assignee->avatar && (file_exists(public_path('storage/' . $task->assignee->avatar)) || file_exists(public_path($task->assignee->avatar))))
+                                    <img src="{{ file_exists(public_path('storage/' . $task->assignee->avatar)) ? asset('storage/' . $task->assignee->avatar) : asset($task->assignee->avatar) }}" class="w-full h-full object-cover">
+                                @else
+                                    <i class="ph-fill ph-user text-[10px] text-brand-600"></i>
+                                @endif
+                            </div>
+                            <p class="text-xs font-bold text-brand-700 truncate">{{ $task->assignee ? $task->assignee->name : 'Anggota' }}</p>
+                        </div>
+                    </div>
                     @if($task->status !== 'todo')
                     <div class="md:flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
@@ -126,6 +139,20 @@
                         </div>
                     </a>
                     @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if($task->revision_note)
+            <div class="border-t border-slate-200 pt-8 mt-8">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-100/50 rounded-full blur-2xl"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2">
+                            <i class="ph-fill ph-warning-circle text-amber-500 text-lg"></i> Catatan Revisi
+                        </h3>
+                        <p class="text-sm text-amber-800 whitespace-pre-wrap leading-relaxed">{{ $task->revision_note }}</p>
+                    </div>
                 </div>
             </div>
             @endif

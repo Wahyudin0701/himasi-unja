@@ -5,14 +5,29 @@
 @section('content')
 
     <!-- Greeting -->
-    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+        @php
+            $eventName = count($divisionsData) > 0 ? $divisionsData[0]['assignment']->event->name : 'Acara';
+            $divisionName = count($divisionsData) > 0 ? $divisionsData[0]['assignment']->division->name : 'Divisi';
+        @endphp
         <div>
-            <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">CO Acara</p>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                Halo, <span class="gradient-text">{{ explode(' ', $user->name)[0] }}</span>
+            <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">CO {{ $divisionName }}</p>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                Kepanitiaan Event : <span class="text-brand-600">{{ $eventName }}</span>
             </h1>
-            <p class="text-sm text-slate-500 mt-1.5 font-medium">Kelola divisi dan pantau tugas sprint anggota Anda.</p>
         </div>
+        
+        @if(isset($ketupelCommittee) && $ketupelCommittee->user)
+        <div class="flex items-center gap-3 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-sm border border-brand-200">
+                {{ strtoupper(substr($ketupelCommittee->user->name, 0, 2)) }}
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 font-semibold mb-0.5">Ketua Pelaksana</p>
+                <p class="text-sm font-bold text-slate-800">{{ $ketupelCommittee->user->name }}</p>
+            </div>
+        </div>
+        @endif
     </div>
 
     @forelse($divisionsData as $data)
@@ -94,10 +109,10 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between py-5 border-t border-slate-200 gap-4">
                     <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-kanban text-brand-500"></i> Papan Sprint</h3>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('kepanitiaan.co.sprints.index') }}" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2">
+                        <a href="{{ route('kepanitiaan.co.sprints.index', ['event' => $assignment->event_id, 'division' => $assignment->event_division_id]) }}" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2">
                             <i class="ph ph-calendar-check"></i> Pengaturan Sprint
                         </a>
-                        <a href="{{ route('kepanitiaan.co.tasks.create', ['event_id' => $assignment->event_id, 'event_division_id' => $assignment->event_division_id]) }}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 shadow-brand-500/30">
+                        <a href="{{ route('kepanitiaan.co.tasks.create', ['event' => $assignment->event_id, 'division' => $assignment->event_division_id]) }}" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 shadow-brand-500/30">
                             <i class="ph ph-plus"></i> Tambah Tugas
                         </a>
                     </div>
@@ -105,17 +120,7 @@
 
                 <!-- Division Header -->
                 <div class="mb-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-100 shrink-0">
-                                <i class="ph-fill ph-users-three text-2xl"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-900 leading-tight">{{ $assignment->division->name ?? 'Divisi' }}</h2>
-                                <p class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-0.5">{{ $assignment->event->name }}</p>
-                            </div>
-                        </div>
-                        
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
                         <div class="flex flex-col items-end gap-1">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold text-slate-500 uppercase">Progress Keseluruhan</span>
@@ -136,26 +141,37 @@
                                 <i class="ph-fill ph-funnel text-slate-400"></i>
                                 <span class="text-xs font-bold text-slate-600 uppercase tracking-widest">Filter:</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full">
-                                <select x-model="filterMember" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
-                                    <option value="">Semua Anggota</option>
-                                    @foreach($members as $member)
-                                        <option value="{{ $member->user->id }}">{{ $member->user->name }}</option>
-                                    @endforeach
-                                </select>
-                                <select x-model="filterStatus" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
-                                    <option value="">Semua Status</option>
-                                    <option value="todo">To Do</option>
-                                    <option value="waiting">Menunggu Review</option>
-                                    <option value="revisi">Revisi</option>
-                                    <option value="completed">Selesai</option>
-                                </select>
-                                <select x-model="filterPriority" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
-                                    <option value="">Semua Prioritas</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full items-end">
+                                <div class="flex flex-col gap-1">
+                                    <select x-model="filterMember" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                        <option value="">Semua Anggota</option>
+                                        @foreach($members as $member)
+                                            <option value="{{ $member->user->id }}">{{ $member->user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <select x-model="filterStatus" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                        <option value="">Semua Status</option>
+                                        <option value="todo">To Do</option>
+                                        <option value="waiting">Menunggu Review</option>
+                                        <option value="revisi">Revisi</option>
+                                        <option value="completed">Selesai</option>
+                                    </select>
+                                </div>
+                                <div class="flex flex-col-reverse sm:flex-col gap-2 sm:gap-1">
+                                    <div class="flex justify-end px-1">
+                                        <button @click="filterMember=''; filterStatus=''; filterPriority=''" class="text-[10px] font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition-colors">
+                                            <i class="ph-bold ph-arrows-clockwise"></i> Reset Filter
+                                        </button>
+                                    </div>
+                                    <select x-model="filterPriority" class="text-sm border-slate-200 rounded-lg focus:ring-brand-500 focus:border-brand-500 w-full bg-slate-50 py-2.5 px-4">
+                                        <option value="">Semua Prioritas</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -381,7 +397,7 @@
                                      <h4 class="font-bold text-brand-900 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-flag-checkered text-brand-500"></i> Pengaturan Sprint</h4>
                                      @if(isset($data['sprints']) && $data['sprints']->isEmpty())
                                          <div class="p-3 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs">
-                                             <i class="ph-fill ph-warning-circle align-middle"></i> Anda belum mengatur jadwal Sprint. <a href="{{ route('kepanitiaan.co.sprints.index') }}" class="font-bold underline hover:text-amber-800">Atur sekarang</a>
+                                             <i class="ph-fill ph-warning-circle align-middle"></i> Anda belum mengatur jadwal Sprint. <a href="{{ route('kepanitiaan.co.sprints.index', ['event' => $assignment->event_id, 'division' => $assignment->event_division_id]) }}" class="font-bold underline hover:text-amber-800">Atur sekarang</a>
                                          </div>
                                      @else
                                          <div>

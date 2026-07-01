@@ -57,16 +57,22 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // 1. Cek role kepanitiaan aktif — prioritas: Ketupel > CO > Anggota
-        if ($user->hasActiveKetupelRole()) {
-            return route('kepanitiaan.ketupel.dashboard', absolute: false);
-        }
+        $activeEvents = $user->getActiveEvents();
+        if ($activeEvents->isNotEmpty()) {
+            $ketupelRole = $activeEvents->first(fn($c) => in_array($c->role->slug, ['ketua-pelaksana', 'wakil-ketua-pelaksana']));
+            if ($ketupelRole) {
+                return route('kepanitiaan.ketupel.dashboard', ['event' => $ketupelRole->event_id], false);
+            }
 
-        if ($user->hasActiveCORole()) {
-            return route('kepanitiaan.co.dashboard', absolute: false);
-        }
+            $coRole = $activeEvents->first(fn($c) => $c->role->slug === 'co-divisi');
+            if ($coRole) {
+                return route('kepanitiaan.co.dashboard', ['event' => $coRole->event_id, 'division' => $coRole->event_division_id], false);
+            }
 
-        if ($user->hasActiveAnggotaRole()) {
-            return route('kepanitiaan.anggota.dashboard', absolute: false);
+            $anggotaRole = $activeEvents->first(fn($c) => $c->role->slug === 'anggota');
+            if ($anggotaRole) {
+                return route('kepanitiaan.anggota.dashboard', ['event' => $anggotaRole->event_id, 'division' => $anggotaRole->event_division_id], false);
+            }
         }
 
         // 2. Fallback ke dashboard kepengurusan berdasarkan global_role

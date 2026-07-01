@@ -128,7 +128,7 @@
                             @if($member->user->avatar)
                                 <div class="mb-3 flex items-center gap-3">
                                     <div class="w-12 h-12 rounded-full overflow-hidden border border-slate-200 shrink-0">
-                                        <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                        <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
                                     </div>
                                     <div class="flex flex-col gap-1.5">
                                         <span class="text-xs text-slate-500">Foto profil saat ini. Unggah file baru untuk menggantinya.</span>

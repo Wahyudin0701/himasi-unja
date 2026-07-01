@@ -15,78 +15,87 @@ class CODashboardController extends Controller
      * Dashboard utama Koordinator Divisi (CO).
      * Menampilkan statistik divisi yang dikoordinasikan.
      */
-    public function index()
+    public function index(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
         $user = auth()->user();
         
-        // Ambil semua assignment CO di event aktif
-        $myAssignments = $user->eventCommittees()
+        $assignment = $user->eventCommittees()
+            ->where('event_id', $event->id)
+            ->where('event_division_id', $division->id)
             ->whereHas('role', fn($q) => $q->where('slug', 'co-divisi'))
-            ->whereHas('event', fn($q) => $q->whereIn('status', ['planning', 'preparation', 'ongoing']))
             ->with(['event', 'division', 'role'])
-            ->get();
+            ->first();
 
-        // Ambil anggota divisi dan tugas-tugas untuk setiap assignment
-        $divisionsData = [];
-        foreach ($myAssignments as $assignment) {
-            $divisionMembers = $assignment->event->committees()
-                ->where('event_division_id', $assignment->event_division_id)
-                ->whereHas('role', fn($q) => $q->where('slug', 'anggota'))
-                ->with('user')
-                ->get();
-
-            $tasks = WorkTask::where('event_id', $assignment->event_id)
-                ->where('event_division_id', $assignment->event_division_id)
-                ->with(['assignee', 'reports'])
-                ->orderBy('sprint_number', 'asc')
-                ->orderBy('due_date', 'asc')
-                ->get();
-
-            $groupedTasks = $tasks->groupBy('sprint_number');
-
-            $sprints = DivisionSprint::where('event_division_id', $assignment->event_division_id)
-                ->orderBy('sprint_number', 'asc')
-                ->get();
-
-            $divisionsData[] = [
-                'assignment' => $assignment,
-                'members' => $divisionMembers,
-                'groupedTasks' => $groupedTasks,
-                'sprints' => $sprints,
-                'totalTasks' => $tasks->count(),
-                'completedTasks' => $tasks->where('status', 'completed')->count(),
-            ];
+        if (!$assignment) {
+            abort(403, 'Anda bukan Koordinator di divisi ini.');
         }
 
-        return view('kepanitiaan.co.dashboard', compact('user', 'divisionsData'));
+        $divisionsData = [];
+        $divisionMembers = $assignment->event->committees()
+            ->where('event_division_id', $division->id)
+            ->whereHas('role', fn($q) => $q->where('slug', 'anggota'))
+            ->with('user')
+            ->get();
+
+        $tasks = WorkTask::where('event_id', $event->id)
+            ->where('event_division_id', $division->id)
+            ->with(['assignee', 'reports'])
+            ->orderBy('sprint_number', 'asc')
+            ->orderBy('due_date', 'asc')
+            ->get();
+
+        $groupedTasks = $tasks->groupBy('sprint_number');
+
+        $sprints = DivisionSprint::where('event_division_id', $division->id)
+            ->orderBy('sprint_number', 'asc')
+            ->get();
+
+        $divisionsData[] = [
+            'assignment' => $assignment,
+            'members' => $divisionMembers,
+            'groupedTasks' => $groupedTasks,
+            'sprints' => $sprints,
+            'totalTasks' => $tasks->count(),
+            'completedTasks' => $tasks->where('status', 'completed')->count(),
+        ];
+
+        $ketupelCommittee = $event->committees()
+            ->whereHas('role', fn($q) => $q->where('slug', 'ketua-pelaksana'))
+            ->with('user')
+            ->first();
+
+        return view('kepanitiaan.co.dashboard', compact('user', 'divisionsData', 'ketupelCommittee'));
     }
 
     /**
      * Menampilkan halaman pengaturan sprint.
      */
-    public function manageSprints()
+    public function manageSprints(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
         $user = auth()->user();
         
-        $myAssignments = $user->eventCommittees()
+        $assignment = $user->eventCommittees()
+            ->where('event_id', $event->id)
+            ->where('event_division_id', $division->id)
             ->whereHas('role', fn($q) => $q->where('slug', 'co-divisi'))
-            ->whereHas('event', fn($q) => $q->whereIn('status', ['planning', 'preparation', 'ongoing']))
             ->with(['event', 'division'])
-            ->get();
+            ->first();
 
-        $divisionsData = [];
-        foreach ($myAssignments as $assignment) {
-            $sprints = DivisionSprint::where('event_division_id', $assignment->event_division_id)
-                ->orderBy('sprint_number', 'asc')
-                ->get();
-
-            $divisionsData[] = [
-                'assignment' => $assignment,
-                'sprints' => $sprints,
-            ];
+        if (!$assignment) {
+            abort(403, 'Anda bukan Koordinator di divisi ini.');
         }
 
-        return view('kepanitiaan.co.sprints', compact('divisionsData'));
+        $divisionsData = [];
+        $sprints = DivisionSprint::where('event_division_id', $division->id)
+            ->orderBy('sprint_number', 'asc')
+            ->get();
+
+        $divisionsData[] = [
+            'assignment' => $assignment,
+            'sprints' => $sprints,
+        ];
+
+        return view('kepanitiaan.co.sprints', compact('divisionsData', 'event', 'division'));
     }
 
     /**
@@ -250,28 +259,20 @@ class CODashboardController extends Controller
     /**
      * Menampilkan halaman tambah tugas.
      */
-    public function createTask(Request $request)
+    public function createTask(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
-        $validated = $request->validate([
-            'event_id' => 'required|exists:events,id',
-            'event_division_id' => 'required|exists:event_divisions,id',
-        ]);
-
         $user = auth()->user();
 
         // Validasi: Pastikan user login adalah CO dari event_division tersebut
         $isCO = $user->eventCommittees()
-            ->where('event_id', $validated['event_id'])
-            ->where('event_division_id', $validated['event_division_id'])
+            ->where('event_id', $event->id)
+            ->where('event_division_id', $division->id)
             ->whereHas('role', fn($q) => $q->where('slug', 'co-divisi'))
             ->exists();
 
         if (!$isCO) {
             abort(403, 'Akses ditolak. Anda bukan Koordinator di divisi ini.');
         }
-
-        $event = Event::findOrFail($validated['event_id']);
-        $division = EventDivision::findOrFail($validated['event_division_id']);
 
         $members = $event->committees()
             ->where('event_division_id', $division->id)
@@ -362,7 +363,7 @@ class CODashboardController extends Controller
 
         WorkTask::create($validated);
 
-        return redirect()->route('kepanitiaan.co.dashboard')->with('success', 'Tugas berhasil ditambahkan!');
+        return redirect()->route('kepanitiaan.co.dashboard', ['event' => $validated['event_id'], 'division' => $validated['event_division_id']])->with('success', 'Tugas berhasil ditambahkan!');
     }
 
     public function editTask(WorkTask $task)
@@ -513,7 +514,7 @@ class CODashboardController extends Controller
 
         $task->update($validated);
 
-        return redirect()->route('kepanitiaan.co.dashboard')->with('success', 'Tugas berhasil diperbarui!');
+        return redirect()->route('kepanitiaan.co.dashboard', ['event' => $task->event_id, 'division' => $task->event_division_id])->with('success', 'Tugas berhasil diperbarui!');
     }
 
     /**
@@ -556,7 +557,7 @@ class CODashboardController extends Controller
         $task->save();
 
         if ($validated['status'] === 'completed') {
-            return redirect()->route('kepanitiaan.co.dashboard')->with('success', 'Progres tugas berhasil diterima (Completed).');
+            return redirect()->route('kepanitiaan.co.dashboard', ['event' => $task->event_id, 'division' => $task->event_division_id])->with('success', 'Progres tugas berhasil diterima (Completed).');
         } else {
             return back()->with('success', 'Progres tugas berhasil dikembalikan (Revisi).');
         }

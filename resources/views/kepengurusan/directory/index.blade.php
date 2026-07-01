@@ -418,12 +418,10 @@
                     <table class="w-full min-w-[1000px] text-sm text-left">
                         <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-200 uppercase font-bold">
                             <tr>
-                                <th scope="col" class="px-6 py-3.5 w-[25%]">Nama Pengurus</th>
-                                <th scope="col" class="px-6 py-3.5 w-[15%]">NIM</th>
-                                <th scope="col" class="px-6 py-3.5 w-[10%]">Angkatan</th>
-                                <th scope="col" class="px-6 py-3.5 w-[25%] whitespace-nowrap">Jabatan</th>
-                                <th scope="col" class="px-6 py-3.5 w-[20%]">Email</th>
-                                
+                                <th scope="col" class="px-6 py-3.5 w-[50%]">Nama Pengurus</th>
+                                <th scope="col" class="px-6 py-3.5 w-[15%] text-center">NIM</th>
+                                <th scope="col" class="px-6 py-3.5 w-[10%] text-center">Angkatan</th>
+                                <th scope="col" class="px-6 py-3.5 w-[25%] whitespace-nowrap text-center">Jabatan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
@@ -455,27 +453,23 @@
                                             <span>{{ $member->user->name }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-3 font-medium text-slate-900">
+                                    <td class="px-6 py-3 font-medium text-slate-900 text-center">
                                         {{ $member->user->nim ?? '-' }}
                                     </td>
-                                    <td class="px-6 py-3 text-slate-600 font-medium">
+                                    <td class="px-6 py-3 text-slate-600 font-medium text-center">
                                         {{ $member->user->angkatan ?? '-' }}
                                     </td>
-                                    <td class="px-6 py-3">
-                                        <div class="flex flex-col items-start gap-1">
+                                    <td class="px-6 py-3 text-center">
+                                        <div class="flex flex-col items-center gap-1">
                                             <div class="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-indigo-50 text-indigo-700 text-[10px] sm:text-xs font-bold rounded sm:rounded-lg border border-indigo-100 whitespace-nowrap">
                                                 {{ $member->position_title ?: ($member->orgPosition->name ?? '-') }}
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-3 text-slate-600 text-xs">
-                                        {{ $member->user->email }}
-                                    </td>
-                                    
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-10 text-center text-slate-500">
+                                    <td colspan="4" class="px-6 py-10 text-center text-slate-500">
                                         <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-100">
                                             <i class="ph-bold ph-users text-xl text-slate-400"></i>
                                         </div>

@@ -14,29 +14,33 @@ class AnggotaDashboardController extends Controller
      * Dashboard utama Anggota Panitia.
      * Menampilkan tabel progress mingguan / sprint.
      */
-    public function index()
+    public function index(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
         $user = auth()->user();
 
-        // Ambil semua tugas yang di-assign ke user di event aktif
         $tasks = WorkTask::where('assigned_to', $user->id)
-            ->whereHas('event', fn($q) => $q->whereIn('status', ['planning', 'preparation', 'ongoing']))
+            ->where('event_id', $event->id)
+            ->where('event_division_id', $division->id)
             ->with(['event', 'eventDivision', 'assigner', 'reports'])
             ->orderBy('sprint_number')
             ->orderBy('due_date')
             ->get();
 
-        // Grup berdasarkan sprint
         $sprintGroups = $tasks->groupBy('sprint_number');
         
-        // Statistik
         $totalTasks = $tasks->count();
         $completedTasks = $tasks->where('status', 'completed')->count();
         $inProgressTasks = $tasks->whereIn('status', ['waiting', 'revisi'])->count();
         $todoTasks = $tasks->where('status', 'todo')->count();
 
+        $coCommittee = $event->committees()
+            ->where('event_division_id', $division->id)
+            ->whereHas('role', fn($q) => $q->where('slug', 'co-divisi'))
+            ->with('user')
+            ->first();
+
         return view('kepanitiaan.anggota.dashboard', compact(
-            'user', 'tasks', 'sprintGroups', 'totalTasks', 'completedTasks', 'inProgressTasks', 'todoTasks'
+            'user', 'event', 'division', 'tasks', 'sprintGroups', 'totalTasks', 'completedTasks', 'inProgressTasks', 'todoTasks', 'coCommittee'
         ));
     }
 
@@ -123,6 +127,6 @@ class AnggotaDashboardController extends Controller
         $task->status = 'waiting';
         $task->save();
 
-        return redirect()->route('kepanitiaan.anggota.dashboard')->with('success', 'Progres tugas berhasil diajukan dan menunggu review CO.');
+        return redirect()->route('kepanitiaan.anggota.dashboard', ['event' => $task->event_id, 'division' => $task->event_division_id])->with('success', 'Progres tugas berhasil diajukan dan menunggu review CO.');
     }
 }

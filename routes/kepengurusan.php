@@ -26,9 +26,14 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
     Route::prefix('anggota')->middleware(['role:anggota'])->name('kepengurusan.anggota.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\AnggotaDashboardController::class, 'index'])->name('dashboard');
         
-        // Jurnal Proker Non-Event
+        // Jurnal Proker Non-Event (Hanya proker divisi sendiri)
         Route::get('/proker', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'index'])->name('proker.index');
+    });
+
+    // Jurnal Proker Workspace (Bisa diakses Anggota & Kadiv untuk keperluan Kolaborasi Lintas Divisi)
+    Route::prefix('anggota')->middleware(['role:anggota,kadiv'])->name('kepengurusan.anggota.')->group(function () {
         Route::get('/proker/{proker}', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'show'])->name('proker.show');
+        Route::get('/proker/{proker}/progress', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'progress'])->name('proker.progress');
         Route::post('/proker/{proker}/logs', [\App\Http\Controllers\Kepengurusan\Anggota\AnggotaProkerController::class, 'storeLog'])->name('proker.logs.store');
     });
 
@@ -46,9 +51,7 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
         Route::put('/proker/{proker}', [KadivProkerController::class, 'update'])->name('proker.update');
         Route::patch('/proker/{proker}/cancel', [KadivProkerController::class, 'cancel'])->name('proker.cancel');
         
-        // Review Jurnal Proker Non-Event
-        Route::get('/review-proker', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'index'])->name('proker.review.index');
-        Route::patch('/review-proker/logs/{log}/review', [\App\Http\Controllers\Kepengurusan\Kadiv\KadivProkerReviewController::class, 'reviewLog'])->name('proker.review.log');
+
     });
 
     // Messaging Routes (accessible by all authenticated users)

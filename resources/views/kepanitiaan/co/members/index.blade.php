@@ -1,35 +1,152 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Progres Divisi')
+@section('title', request()->routeIs('kepanitiaan.ketupel.*') ? 'Progres Semua Divisi' : 'Progres Divisi')
 
 @section('content')
 <div class="max-w-7xl mx-auto pb-10 space-y-8">
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    @php
+        $totalAllTasks = 0;
+        $totalAllDone = 0;
+        $totalAllScore = 0;
+        if(isset($divisionsData)) {
+            foreach($divisionsData as $data) {
+                foreach($data['members'] as $member) {
+                    $tasks = $member->tasks;
+                    $totalAllTasks += $tasks->count();
+                    $done = $tasks->where('status', 'completed')->count();
+                    $revisi = $tasks->whereIn('status', ['revisi', 'revision'])->count();
+                    $waiting = $tasks->where('status', 'waiting')->count();
+                    
+                    $totalAllDone += $done;
+                    $totalAllScore += ($done * 1.0) + ($revisi * 0.75) + ($waiting * 0.50);
+                }
+            }
+        }
+        $overallProgress = $totalAllTasks > 0 ? round(($totalAllScore / $totalAllTasks) * 100) : 0;
+    @endphp
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-8 mb-8">
+        @php
+            $firstDivisionName = count($divisionsData) > 0 ? $divisionsData[0]['division']->name : 'Divisi';
+        @endphp
         <div>
-            <h1 class="text-2xl font-black text-slate-900">Progres Divisi & Tugas</h1>
-            <p class="text-slate-500 mt-1 text-sm">Pantau progres setiap anggota beserta rincian tugas yang sedang dikerjakan.</p>
+            @if(request()->routeIs('kepanitiaan.ketupel.*'))
+                <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">{{ $userRoleName ?? 'Ketua Pelaksana' }}</p>
+            @elseif(request()->routeIs('kepanitiaan.co.*'))
+                <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">CO {{ $firstDivisionName }}</p>
+            @else
+                <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">Kepanitiaan</p>
+            @endif
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Kepanitiaan Event : <span class="text-brand-600">{{ isset($viewEvent) ? $viewEvent->name : 'Acara' }}</span></h1>
         </div>
+
+        @if(isset($divisionsData) && count($divisionsData) > 0 && request()->routeIs('kepanitiaan.ketupel.*'))
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Progres Keseluruhan</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full {{ $overallProgress == 100 && $totalAllTasks > 0 ? 'bg-emerald-500' : 'bg-brand-500' }} rounded-full transition-all duration-500" style="width: {{ $overallProgress }}%"></div>
+                    </div>
+                    <span class="text-sm font-black {{ $overallProgress == 100 && $totalAllTasks > 0 ? 'text-emerald-600' : 'text-brand-600' }}">{{ $overallProgress }}%</span>
+                </div>
+            </div>
+            <div class="pl-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-slate-100 pt-3 sm:pt-0">
+                <p class="text-xs font-semibold text-slate-500 whitespace-nowrap"><span class="text-slate-800 font-bold text-sm">{{ $totalAllDone }}</span> dari {{ $totalAllTasks }} Tugas</p>
+            </div>
+        </div>
+        @endif
     </div>
 
-    @forelse($divisionsData as $data)
-        @php
-            $event = $data['event'];
-            $division = $data['division'];
-            $members = $data['members'];
+    @if(count($divisionsData) > 0)
+        @php $hasMultipleDivisions = count($divisionsData) > 1; @endphp
+        <div class="{{ $hasMultipleDivisions ? 'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6' : '' }}" x-data="{ activeTab: '{{ count($divisionsData) > 0 ? $divisionsData[0]['division']->id : '' }}' }">
+            <div class="flex flex-col {{ $hasMultipleDivisions ? 'md:flex-row min-h-[500px]' : '' }}">
+                
+                @if($hasMultipleDivisions)
+                {{-- Mobile Dropdown Filter --}}
+                <div class="md:hidden p-4 border-b border-slate-100 bg-slate-50/30 relative" x-data="{ mobileMenuOpen: false }">
+                    <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="w-full bg-white text-left px-4 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between font-bold text-sm text-slate-900">
+                        <div>
+                            @foreach($divisionsData as $data)
+                                <span x-show="activeTab === '{{ $data['division']->id }}'" style="display: none;">{{ $data['division']->name }}</span>
+                            @endforeach
+                        </div>
+                        <i class="ph-bold ph-caret-down text-slate-400 transition-transform" :class="mobileMenuOpen ? 'rotate-180' : ''"></i>
+                    </button>
+                    
+                    <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" style="display: none;" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-[-10px]"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute top-[calc(100%-0.5rem)] left-4 right-4 bg-white border border-slate-200 shadow-xl rounded-xl z-20 flex flex-col divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
+                        @foreach($divisionsData as $data)
+                            <button type="button" @click="activeTab = '{{ $data['division']->id }}'; mobileMenuOpen = false" 
+                                    class="text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between group"
+                                    :class="activeTab === '{{ $data['division']->id }}' ? 'bg-brand-50' : ''">
+                                <div>
+                                    <h3 class="font-bold text-sm mb-0.5" :class="activeTab === '{{ $data['division']->id }}' ? 'text-brand-700' : 'text-slate-900'">{{ $data['division']->name }}</h3>
+                                    <p class="text-xs text-slate-500">{{ $data['members']->count() }} Anggota</p>
+                                </div>
+                                <i x-show="activeTab === '{{ $data['division']->id }}'" class="ph-bold ph-check text-brand-600" style="display: none;"></i>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
 
-            $totalTasks = 0;
-            $totalDone = 0;
-            foreach ($members as $member) {
-                $totalTasks += $member->tasks->count();
-                $totalDone += $member->tasks->where('status', 'completed')->count();
-            }
-            $divisionProgress = $totalTasks > 0 ? round(($totalDone / $totalTasks) * 100) : 0;
-        @endphp
+                {{-- Sidebar Filter (Desktop) --}}
+                <div class="hidden md:flex w-full md:w-1/3 lg:w-1/4 border-r border-slate-100 bg-slate-50/30 p-4 shrink-0 flex-col gap-3">
+                    @foreach($divisionsData as $data)
+                        <button type="button" 
+                                @click="activeTab = '{{ $data['division']->id }}'"
+                                class="text-left p-4 rounded-xl transition-all duration-200 border w-full flex items-center justify-between group"
+                                :class="activeTab === '{{ $data['division']->id }}' ? 'bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-500/20' : 'bg-white border-slate-200 text-slate-700 hover:border-brand-300 hover:shadow-sm'">
+                            <div>
+                                <h3 class="font-bold text-sm mb-0.5" :class="activeTab === '{{ $data['division']->id }}' ? 'text-white' : 'text-slate-900 group-hover:text-brand-700'">{{ $data['division']->name }}</h3>
+                                <p class="text-xs" :class="activeTab === '{{ $data['division']->id }}' ? 'text-brand-100' : 'text-slate-500'">{{ $data['members']->count() }} Anggota</p>
+                            </div>
+                            <i class="ph-bold ph-caret-right transition-transform" 
+                               :class="activeTab === '{{ $data['division']->id }}' ? 'text-white translate-x-1' : 'text-slate-400 group-hover:text-brand-500 group-hover:translate-x-1'"></i>
+                        </button>
+                    @endforeach
+                </div>
+                @endif
 
-        <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-8">
+                {{-- Main Content --}}
+                <div class="flex-1 {{ $hasMultipleDivisions ? 'bg-white relative' : '' }}">
+                    @foreach($divisionsData as $data)
+                        <div x-show="activeTab === '{{ $data['division']->id }}'" 
+                             @if($hasMultipleDivisions)
+                             style="display: none;"
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 translate-y-4"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             @endif
+                             class="{{ $hasMultipleDivisions ? 'h-full' : 'bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-8' }}">
+                            @php
+                                $event = $data['event'];
+                                $division = $data['division'];
+                                $members = $data['members'];
 
-            {{-- Division Header --}}
+                                $totalTasks = 0;
+                                $totalDone = 0;
+                                $totalScore = 0;
+                                foreach ($members as $member) {
+                                    $tasks = $member->tasks;
+                                    $totalTasks += $tasks->count();
+                                    
+                                    $done = $tasks->where('status', 'completed')->count();
+                                    $revisi = $tasks->whereIn('status', ['revisi', 'revision'])->count();
+                                    $waiting = $tasks->where('status', 'waiting')->count();
+                                    
+                                    $totalDone += $done;
+                                    $totalScore += ($done * 1.0) + ($revisi * 0.75) + ($waiting * 0.50);
+                                }
+                                $divisionProgress = $totalTasks > 0 ? round(($totalScore / $totalTasks) * 100) : 0;
+                            @endphp
+
+                            {{-- Division Header --}}
             <div class="border-b border-slate-100">
                 <div class="px-6 md:px-8 pt-6 pb-4 flex flex-col sm:flex-row sm:items-center gap-5">
                     <div class="flex items-center gap-4 flex-1">
@@ -38,7 +155,7 @@
                     </div>
                     <div>
                         <h2 class="font-bold text-lg text-slate-900">{{ $division->name }}</h2>
-                        <p class="text-xs font-semibold text-brand-600 mt-0.5">{{ $event->name }}</p>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">CO: <span class="text-slate-700">{{ $data['co'] ? $data['co']->user->name : 'Belum Ditentukan' }}</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-6 sm:gap-8">
@@ -88,7 +205,9 @@
                                 $revision = $tasks->whereIn('status', ['revisi', 'revision'])->count();
                                 $done     = $tasks->where('status', 'completed')->count();
                                 $total    = $tasks->count();
-                                $memberProgress = $total > 0 ? round(($done / $total) * 100) : 0;
+                                
+                                $memberScore = ($done * 1.0) + ($revision * 0.75) + ($waiting * 0.50);
+                                $memberProgress = $total > 0 ? round(($memberScore / $total) * 100) : 0;
 
                                 $tasksByStatus = [
                                     'todo'      => $tasks->where('status', 'todo'),
@@ -107,20 +226,24 @@
 
                                     {{-- Avatar + Name --}}
                                     <div class="flex items-center gap-3.5 flex-1 min-w-0">
-                                        <div class="w-11 h-11 rounded-full bg-brand-100 overflow-hidden shrink-0 flex items-center justify-center">
-                                            @php
-                                                $words = explode(' ', $user->name);
-                                                $initials = '';
-                                                foreach ($words as $w) {
-                                                    if(isset($w[0])) $initials .= $w[0];
-                                                }
-                                                $initials = strtoupper(substr($initials, 0, 2));
-                                            @endphp
-                                            <span class="text-sm font-bold text-brand-700 tracking-wider">{{ $initials }}</span>
+                                        <div class="w-11 h-11 rounded-full bg-brand-100 overflow-hidden shrink-0 flex items-center justify-center relative shadow-inner">
+                                            @if($user->avatar && (file_exists(public_path('storage/' . $user->avatar)) || file_exists(public_path($user->avatar))))
+                                                <img src="{{ file_exists(public_path('storage/' . $user->avatar)) ? asset('storage/' . $user->avatar) : asset($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                            @else
+                                                @php
+                                                    $words = explode(' ', $user->name);
+                                                    $initials = '';
+                                                    foreach ($words as $w) {
+                                                        if(isset($w[0])) $initials .= $w[0];
+                                                    }
+                                                    $initials = strtoupper(substr($initials, 0, 2));
+                                                @endphp
+                                                <span class="text-sm font-bold text-brand-700 tracking-wider">{{ $initials }}</span>
+                                            @endif
                                         </div>
                                         <div class="min-w-0">
                                             <h4 class="font-bold text-slate-900 text-sm truncate">{{ $user->name }}</h4>
-                                            <p class="text-xs text-slate-400 mt-0.5">{{ $user->npm ?? 'NPM tidak tersedia' }}</p>
+                                            <p class="text-xs text-slate-400 mt-0.5">NIM {{ $user->nim ?? '-' }} ({{ $user->angkatan ?? '-' }})</p>
                                         </div>
                                     </div>
 
@@ -214,7 +337,7 @@
                                                         <div class="space-y-2">
                                                             @forelse($colTodo as $task)
                                                                 @php $isOverdue = $task->due_date && \Carbon\Carbon::parse($task->due_date)->endOfDay()->isPast(); @endphp
-                                                                <a href="{{ route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border {{ $isOverdue ? 'border-rose-200' : 'border-slate-200' }} rounded-xl p-3 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border {{ $isOverdue ? 'border-rose-200' : 'border-slate-200' }} rounded-xl p-3 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -253,7 +376,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colWaiting as $task)
-                                                                <a href="{{ route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-blue-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-blue-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -289,7 +412,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colRevisi as $task)
-                                                                <a href="{{ route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-amber-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-amber-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -331,7 +454,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colDone as $task)
-                                                                <a href="{{ route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-emerald-200 rounded-xl p-3 shadow-sm opacity-80 hover:opacity-100 hover:shadow-md transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-emerald-200 rounded-xl p-3 shadow-sm opacity-80 hover:opacity-100 hover:shadow-md transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -372,14 +495,18 @@
                 @endif
             </div>
         </div>
-    @empty
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-12 text-center max-w-lg mx-auto">
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-12 text-center w-full">
             <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-sm">
                 <i class="ph-fill ph-users-three text-3xl text-slate-300"></i>
             </div>
             <h3 class="font-bold text-slate-900 mb-2 text-lg">Tidak Ada Data Divisi</h3>
-            <p class="text-sm text-slate-500">Anda belum ditugaskan sebagai pengurus inti (CO/Ketupel) yang membawahi divisi mana pun saat ini.</p>
+            <p class="text-sm text-slate-500">Divisi yang berada di bawah pengawasan Anda tidak ditemukan pada acara ini.</p>
         </div>
-    @endforelse
+    @endif
 </div>
 @endsection

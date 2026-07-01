@@ -141,14 +141,22 @@ Route::get('/dashboard', function () {
     }
 
     // Kepanitiaan Dashboards
-    if ($user->hasActiveKetupelRole()) {
-        return redirect()->route('kepanitiaan.ketupel.dashboard');
-    }
-    if ($user->hasActiveCORole()) {
-        return redirect()->route('kepanitiaan.co.dashboard');
-    }
-    if ($user->hasActiveAnggotaRole()) {
-        return redirect()->route('kepanitiaan.anggota.dashboard');
+    $activeEvents = $user->getActiveEvents();
+    if ($activeEvents->isNotEmpty()) {
+        $ketupelRole = $activeEvents->first(fn($c) => in_array($c->role->slug, ['ketua-pelaksana', 'wakil-ketua-pelaksana']));
+        if ($ketupelRole) {
+            return redirect()->route('kepanitiaan.ketupel.dashboard', ['event' => $ketupelRole->event_id]);
+        }
+
+        $coRole = $activeEvents->first(fn($c) => $c->role->slug === 'co-divisi');
+        if ($coRole) {
+            return redirect()->route('kepanitiaan.co.dashboard', ['event' => $coRole->event_id, 'division' => $coRole->event_division_id]);
+        }
+
+        $anggotaRole = $activeEvents->first(fn($c) => $c->role->slug === 'anggota');
+        if ($anggotaRole) {
+            return redirect()->route('kepanitiaan.anggota.dashboard', ['event' => $anggotaRole->event_id, 'division' => $anggotaRole->event_division_id]);
+        }
     }
     
     // Default fallback if no specific dashboard

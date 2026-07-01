@@ -93,7 +93,7 @@
                                     <div class="flex items-center gap-4 flex-1">
                                         <div class="relative">
                                             @if($user->avatar)
-                                                <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
+                                                <img src="{{ file_exists(public_path('storage/' . $user->avatar)) ? asset('storage/' . $user->avatar) : asset($user->avatar) }}" alt="{{ $user->name }}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
                                             @else
                                                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 flex items-center justify-center border-2 border-white shadow-sm text-brand-600 font-bold text-sm">
                                                     {{ strtoupper(substr($user->name, 0, 2)) }}

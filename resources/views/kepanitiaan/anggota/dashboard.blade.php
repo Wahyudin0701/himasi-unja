@@ -10,15 +10,23 @@
 
     <!-- Greeting -->
     <div class="space-y-6">
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">Anggota Divisi</p>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                Halo, <span class="gradient-text">{{ explode(' ', $user->name)[0] }}</span>
-            </h1>
-            <p class="text-sm text-slate-500 mt-1.5 font-medium">Berikut progres tugas sprint Anda.</p>
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+            <div>
+                <p class="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-1">Anggota Divisi {{ $division->name }}</p>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">Kepanitiaan Event : <span class="text-brand-600">{{ $event->name }}</span></h1>
+            </div>
+            @if(isset($coCommittee) && $coCommittee->user)
+            <div class="flex items-center gap-3 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+                <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-sm border border-brand-200">
+                    {{ strtoupper(substr($coCommittee->user->name, 0, 2)) }}
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-semibold mb-0.5">Koordinator Divisi</p>
+                    <p class="text-sm font-bold text-slate-800">{{ $coCommittee->user->name }}</p>
+                </div>
+            </div>
+            @endif
         </div>
-    </div>
 
     <!-- Sprint Tasks Board Header -->
     <div>
@@ -26,26 +34,7 @@
             <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-kanban text-brand-500"></i> Papan Sprint</h3>
         </div>
 
-        @php
-            $firstTask = $tasks->first();
-            $divisionName = $firstTask ? ($firstTask->eventDivision->name ?? 'Divisi') : 'Divisi';
-            $eventName = $firstTask ? ($firstTask->event->name ?? 'Event') : 'Event';
-        @endphp
 
-        <!-- Division Header -->
-        <div class="mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-100 shrink-0">
-                        <i class="ph-fill ph-users-three text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-900 leading-tight">{{ $divisionName }}</h2>
-                        <p class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-0.5">{{ $eventName }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     <!-- Kanban Sprints -->
     @if($sprintGroups->count() > 0)

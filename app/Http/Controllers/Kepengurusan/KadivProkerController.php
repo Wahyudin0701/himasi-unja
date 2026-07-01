@@ -133,6 +133,7 @@ class KadivProkerController extends Controller
                 $prokerData['pic_id'] = $validated['pj_id'];
             } else {
                 $prokerData['pic_id'] = $validated['ketupel_id'];
+                $prokerData['budget_plan'] = null;
             }
 
             $proker = $division->workPrograms()->create($prokerData);
@@ -423,6 +424,9 @@ class KadivProkerController extends Controller
             'collaborators.*' => 'exists:users,id',
         ]);
 
+        // Force type to remain unchanged to maintain data integrity
+        $validated['type'] = $proker->type;
+
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $proker, $activePeriod, $user) {
             $prokerData = collect($validated)->except(['ketupel_id', 'waketupel_id', 'pj_id', 'partner_divisions', 'collaborators'])->toArray();
             
@@ -430,6 +434,7 @@ class KadivProkerController extends Controller
                 $prokerData['pic_id'] = $validated['pj_id'];
             } else {
                 $prokerData['pic_id'] = $validated['ketupel_id'];
+                $prokerData['budget_plan'] = null;
             }
 
             $proker->update($prokerData);

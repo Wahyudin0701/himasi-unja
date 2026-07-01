@@ -15,6 +15,7 @@ return new class extends Migration
             $table->text('content');
             $table->integer('progress_update'); // Persentase yang diajukan
             $table->string('attachment')->nullable();
+            $table->string('link')->nullable();
             $table->enum('status', ['pending', 'approved', 'revised'])->default('pending');
             $table->text('feedback')->nullable(); // Catatan dari Kadiv
             $table->timestamps();

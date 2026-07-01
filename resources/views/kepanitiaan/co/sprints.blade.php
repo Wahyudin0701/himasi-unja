@@ -10,7 +10,7 @@
             <p class="text-slate-500 mt-1 text-sm">Kelola jadwal sprint untuk divisi yang Anda koordinasikan.</p>
         </div>
         <div>
-            <a href="{{ route('kepanitiaan.co.dashboard') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-brand-600 transition-colors">
+            <a href="{{ route('kepanitiaan.co.dashboard', ['event' => $event->id, 'division' => $division->id]) }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-brand-600 transition-colors">
                 <i class="ph-bold ph-arrow-left"></i> Kembali
             </a>
         </div>

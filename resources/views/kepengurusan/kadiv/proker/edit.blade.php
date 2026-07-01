@@ -44,18 +44,21 @@
                 {{-- Jenis --}}
                 <div>
                     <label for="type" class="block text-sm font-bold text-slate-700 mb-1.5">Jenis <span class="text-red-500">*</span></label>
-                    <select name="type" id="type" required class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors">
+                    <select id="type" disabled class="w-full bg-slate-100 border border-slate-200 text-slate-500 text-sm rounded-xl cursor-not-allowed block p-3 transition-colors">
+                        <option value="">-- Pilih Jenis Proker --</option>
                         <option value="internal" {{ old('type', $proker->type) == 'internal' ? 'selected' : '' }}>Internal Divisi</option>
                         <option value="kolaborasi" {{ old('type', $proker->type) == 'kolaborasi' ? 'selected' : '' }}>Kolaborasi Lintas Divisi</option>
                         <option value="event" {{ old('type', $proker->type) == 'event' ? 'selected' : '' }}>Event Kepanitiaan</option>
                     </select>
+                    <input type="hidden" name="type" value="{{ $proker->type }}">
+                    <p class="text-[10px] text-slate-500 mt-1"><i class="ph-fill ph-info"></i> Jenis program kerja dikunci setelah dibuat untuk menjaga integritas data.</p>
                     @error('type')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- Bidang --}}
                 <div>
                     <label for="sub_division_id" class="block text-sm font-bold text-slate-700 mb-1.5">Bidang <span class="text-red-500">*</span></label>
@@ -66,6 +69,16 @@
                         @endforeach
                     </select>
                     @error('sub_division_id')
+                        <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Rencana Anggaran --}}
+                <div id="budget-field-container">
+                    <label for="budget_plan" class="block text-sm font-bold text-slate-700 mb-1.5">Rencana Anggaran (Rp) <span class="text-red-500">*</span></label>
+                    <input type="number" name="budget_plan" id="budget_plan" min="0" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition-colors" placeholder="Contoh: 1500000" value="{{ old('budget_plan', intval($proker->budget_plan)) }}">
+                    <p class="text-[10px] text-slate-500 mt-1"><i class="ph-fill ph-info"></i> Event: Diisi terpisah melalui modul RAB.</p>
+                    @error('budget_plan')
                         <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -227,6 +240,8 @@
         const eventFields = document.getElementById('event-fields');
         const internalFields = document.getElementById('internal-fields');
         const kolaborasiFields = document.getElementById('kolaborasi-fields');
+        const budgetFieldContainer = document.getElementById('budget-field-container');
+        const budgetPlanInput = document.getElementById('budget_plan');
         
         const divisionCheckboxes = document.querySelectorAll('.division-checkbox');
         const collaboratorsContainer = document.getElementById('collaborators-container');
@@ -242,6 +257,8 @@
                 eventFields.classList.remove('hidden');
                 internalFields.classList.add('hidden');
                 kolaborasiFields.classList.add('hidden');
+                budgetFieldContainer.classList.add('hidden');
+                budgetPlanInput.value = '';
                 
                 document.getElementById('ketupel_id').setAttribute('required', 'required');
                 document.getElementById('waketupel_id').setAttribute('required', 'required');
@@ -250,6 +267,7 @@
                 eventFields.classList.add('hidden');
                 internalFields.classList.remove('hidden');
                 kolaborasiFields.classList.add('hidden');
+                budgetFieldContainer.classList.remove('hidden');
                 
                 document.getElementById('ketupel_id').removeAttribute('required');
                 document.getElementById('waketupel_id').removeAttribute('required');
@@ -258,6 +276,7 @@
                 eventFields.classList.add('hidden');
                 internalFields.classList.remove('hidden');
                 kolaborasiFields.classList.remove('hidden');
+                budgetFieldContainer.classList.remove('hidden');
                 
                 document.getElementById('ketupel_id').removeAttribute('required');
                 document.getElementById('waketupel_id').removeAttribute('required');

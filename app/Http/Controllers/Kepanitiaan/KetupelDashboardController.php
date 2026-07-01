@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kepanitiaan\Event;
 use App\Models\Kepanitiaan\EventCommittee;
+use App\Models\ProgressReport\WorkTask;
 
 class KetupelDashboardController extends Controller
 {
@@ -22,58 +23,52 @@ class KetupelDashboardController extends Controller
      * 
      * Rule: 1 event = 1 Ketupel (dipastikan di level query dan validasi assign).
      */
-    public function index()
+    public function index(\App\Models\Kepanitiaan\Event $event)
     {
         $user = auth()->user();
 
-        // Ambil hanya event di mana user adalah Ketupel atau Wakil Ketua Pelaksana
-        $myCommittees = $user->eventCommittees()
+        // Pastikan user adalah Ketupel di event ini
+        $ketupelCommittee = $user->eventCommittees()
+            ->where('event_id', $event->id)
             ->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))
-            ->whereHas('event', fn($q) => $q->whereNotIn('status', ['cancelled']))
             ->with(['event.divisions', 'event.committees', 'role'])
-            ->get();
-
-        // Ambil event unik (seharusnya tidak ada duplikat karena 1 user 1 event via unique constraint)
-        $myEvents = $myCommittees->pluck('event')->unique('id')->filter();
-
-        // Statistik
-        $totalEvents   = $myEvents->count();
-        $activeEvents  = $myEvents->whereIn('status', ['planning', 'preparation', 'ongoing'])->count();
-        $totalDivisions = 0;
-        $totalMembers  = 0;
-
-        foreach ($myEvents as $event) {
-            $totalDivisions += $event->divisions->count();
-            $totalMembers   += $event->committees->count();
-        }
-
-        return view('kepanitiaan.ketupel.dashboard', compact(
-            'user', 'myEvents', 'myCommittees',
-            'totalEvents', 'activeEvents', 'totalDivisions', 'totalMembers'
-        ));
-    }
-
-    /**
-     * Manajemen Panitia — otomatis mengarah ke halaman kelola tim
-     * dari event aktif yang dipegang Ketupel.
-     */
-    public function manajemenPanitia()
-    {
-        $user = auth()->user();
-
-        // Cari event aktif di mana user adalah Ketupel
-        $assignment = $user->eventCommittees()
-            ->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))
-            ->whereHas('event', fn($q) => $q->whereIn('status', ['planning', 'preparation', 'ongoing']))
-            ->with('event')
             ->first();
 
-        if (!$assignment) {
-            return redirect()->route('kepanitiaan.ketupel.dashboard')
-                ->with('error', 'Anda tidak memiliki acara aktif saat ini.');
+        if (!$ketupelCommittee) {
+            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
         }
 
-        return redirect()->route('kepanitiaan.ketupel.manage-team', $assignment->event);
+        $userRoleName = strtoupper($ketupelCommittee->role->name);
+        $myCommittees = collect([$ketupelCommittee]);
+
+        $totalEvents   = 1;
+        $activeEvents  = in_array($event->status, ['planning', 'preparation', 'ongoing']) ? 1 : 0;
+        $totalDivisions = $event->divisions()->count();
+        $totalMembers  = $event->committees()->count();
+
+        // Fetch all tasks for the event across all divisions
+        $tasks = WorkTask::where('event_id', $event->id)
+            ->with(['assignee', 'reports', 'division'])
+            ->orderBy('sprint_number', 'asc')
+            ->orderBy('due_date', 'asc')
+            ->get();
+
+        $groupedTasks = $tasks->groupBy('sprint_number');
+
+        $members = $event->committees()
+            ->whereHas('role', fn($q) => $q->where('slug', 'anggota'))
+            ->with('user')
+            ->get();
+
+        $totalAllTasks = $tasks->count();
+        $totalAllDone = $tasks->where('status', 'completed')->count();
+        $overallProgress = $totalAllTasks > 0 ? round(($totalAllDone / $totalAllTasks) * 100) : 0;
+
+        return view('kepanitiaan.ketupel.dashboard', compact(
+            'user', 'event', 'myCommittees', 'userRoleName',
+            'totalEvents', 'activeEvents', 'totalDivisions', 'totalMembers',
+            'tasks', 'groupedTasks', 'members', 'totalAllTasks', 'totalAllDone', 'overallProgress'
+        ));
     }
 
     /**
@@ -85,14 +80,16 @@ class KetupelDashboardController extends Controller
         $user = auth()->user();
 
         // Pastikan user adalah Ketupel (atau Wakil) di event ini secara spesifik
-        $isKetupel = $user->eventCommittees()
+        $ketupelCommittee = $user->eventCommittees()
             ->where('event_id', $event->id)
             ->whereHas('role', fn($q) => $q->whereIn('slug', self::KETUPEL_SLUGS))
-            ->exists();
+            ->first();
 
-        if (!$isKetupel) {
-            abort(403, 'Anda bukan Ketua Pelaksana di acara ini.');
+        if (!$ketupelCommittee) {
+            abort(403, 'Anda bukan Ketua/Wakil Pelaksana di acara ini.');
         }
+
+        $userRoleName = $ketupelCommittee->role->name;
 
         $event->load([
             'divisions',
@@ -111,7 +108,7 @@ class KetupelDashboardController extends Controller
         
         $roles = \App\Models\Kepanitiaan\CommitteeRole::all();
 
-        return view('kepanitiaan.ketupel.manage_team', compact('user', 'event', 'allUsers', 'roles'));
+        return view('kepanitiaan.ketupel.manage_team', compact('user', 'event', 'allUsers', 'roles', 'userRoleName'));
     }
 
     /**
@@ -146,7 +143,10 @@ class KetupelDashboardController extends Controller
             
             // Mode 2: User baru
             'name' => 'required_without:user_id|nullable|string|max:255',
-            'email' => 'required_without:user_id|nullable|email|max:255',
+            'email_prefix' => 'required_without:user_id|nullable|string|max:255',
+            'nim' => 'required_without:user_id|nullable|string|max:20',
+            'angkatan' => 'required_without:user_id|nullable|integer',
+            'password' => 'required_without:user_id|nullable|string|min:6',
         ]);
 
         try {
@@ -157,12 +157,15 @@ class KetupelDashboardController extends Controller
             if (!empty($validated['user_id'])) {
                 $targetUser = \App\Models\User::findOrFail($validated['user_id']);
             } else {
+                $email = $validated['email_prefix'] . '@himasi.unja.ac.id';
                 // Buat user baru atau ambil kalau sudah ada berdasarkan email
                 $targetUser = \App\Models\User::firstOrCreate(
-                    ['email' => $validated['email']],
+                    ['email' => $email],
                     [
                         'name' => $validated['name'],
-                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'nim' => $validated['nim'],
+                        'angkatan' => $validated['angkatan'],
+                        'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
                         'global_role' => 'anggota', // Role default HIMASI
                     ]
                 );
@@ -224,7 +227,10 @@ class KetupelDashboardController extends Controller
             'user_id' => 'nullable|exists:users,id',
             // Mode 2: User baru
             'name' => 'required_without:user_id|nullable|string|max:255',
-            'email' => 'required_without:user_id|nullable|email|max:255',
+            'email_prefix' => 'required_without:user_id|nullable|string|max:255',
+            'nim' => 'required_without:user_id|nullable|string|max:20',
+            'angkatan' => 'required_without:user_id|nullable|integer',
+            'password' => 'required_without:user_id|nullable|string|min:6',
         ]);
 
         try {
@@ -235,11 +241,14 @@ class KetupelDashboardController extends Controller
             if (!empty($validated['user_id'])) {
                 $targetUser = \App\Models\User::findOrFail($validated['user_id']);
             } else {
+                $email = $validated['email_prefix'] . '@himasi.unja.ac.id';
                 $targetUser = \App\Models\User::firstOrCreate(
-                    ['email' => $validated['email']],
+                    ['email' => $email],
                     [
                         'name' => $validated['name'],
-                        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                        'nim' => $validated['nim'],
+                        'angkatan' => $validated['angkatan'],
+                        'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
                         'global_role' => 'anggota',
                     ]
                 );
@@ -338,7 +347,10 @@ class KetupelDashboardController extends Controller
             'anggota.*.type' => 'required|in:existing,new',
             'anggota.*.user_id' => 'required_if:anggota.*.type,existing|nullable|exists:users,id',
             'anggota.*.name' => 'required_if:anggota.*.type,new|nullable|string|max:255',
-            'anggota.*.email' => 'required_if:anggota.*.type,new|nullable|email|max:255',
+            'anggota.*.email_prefix' => 'required_if:anggota.*.type,new|nullable|string|max:255',
+            'anggota.*.nim' => 'required_if:anggota.*.type,new|nullable|string|max:20',
+            'anggota.*.angkatan' => 'required_if:anggota.*.type,new|nullable|integer',
+            'anggota.*.password' => 'required_if:anggota.*.type,new|nullable|string|min:6',
         ]);
 
         $userIds = [];
@@ -397,8 +409,12 @@ class KetupelDashboardController extends Controller
                 $aType = $anggotaData['type'] ?? 'existing';
                 $aUserId = $anggotaData['user_id'] ?? null;
                 if ($aUserId === '') $aUserId = null;
-                $aEmail = $anggotaData['email'] ?? null;
+                $aEmailPrefix = $anggotaData['email_prefix'] ?? null;
+                $aEmail = $aEmailPrefix ? $aEmailPrefix . '@himasi.unja.ac.id' : null;
                 $aName = $anggotaData['name'] ?? null;
+                $aNim = $anggotaData['nim'] ?? null;
+                $aAngkatan = $anggotaData['angkatan'] ?? null;
+                $aPassword = $anggotaData['password'] ?? 'password';
 
                 // Lewati jika kosong (misal salah kirim)
                 if ($aType === 'existing' && !$aUserId) continue;
@@ -411,7 +427,9 @@ class KetupelDashboardController extends Controller
                         ['email' => $aEmail],
                         [
                             'name' => $aName,
-                            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                            'nim' => $aNim,
+                            'angkatan' => $aAngkatan,
+                            'password' => \Illuminate\Support\Facades\Hash::make($aPassword),
                             'global_role' => 'anggota',
                         ]
                     );

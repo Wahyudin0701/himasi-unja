@@ -43,6 +43,13 @@ class User extends Authenticatable
         return $this->hasMany(Member::class);
     }
 
+    // A user can be a collaborator in cross-division collaborative work programs
+    public function collaboratingWorkPrograms()
+    {
+        return $this->belongsToMany(\App\Models\Kepengurusan\WorkProgram::class, 'work_program_collaborators', 'user_id', 'work_program_id')
+                    ->withTimestamps();
+    }
+
     // A user can be a committee member in events (panitia / volunteer)
     public function eventCommittees()
     {
