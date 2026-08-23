@@ -48,6 +48,16 @@ class Event extends Model
         return $this->hasMany(EventCommittee::class);
     }
 
+    public function letters()
+    {
+        return $this->hasMany(EventLetter::class);
+    }
+
+    public function meetings()
+    {
+        return $this->hasMany(EventMeeting::class);
+    }
+
     public function tasks()
     {
         return $this->hasMany(WorkTask::class);
@@ -58,10 +68,7 @@ class Event extends Model
         return $this->hasMany(Rundown::class);
     }
 
-    public function letters()
-    {
-        return $this->hasMany(Letter::class);
-    }
+
 
     public function guests()
     {

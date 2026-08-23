@@ -22,8 +22,8 @@
                         <p class="text-[10px] font-bold text-brand-400 uppercase tracking-widest mb-1">Ditugaskan Kepada</p>
                         <div class="flex items-center gap-2 mt-0.5">
                             <div class="w-5 h-5 rounded-full bg-brand-200 flex items-center justify-center shrink-0 overflow-hidden">
-                                @if($task->assignee && $task->assignee->avatar && (file_exists(public_path('storage/' . $task->assignee->avatar)) || file_exists(public_path($task->assignee->avatar))))
-                                    <img src="{{ file_exists(public_path('storage/' . $task->assignee->avatar)) ? asset('storage/' . $task->assignee->avatar) : asset($task->assignee->avatar) }}" class="w-full h-full object-cover">
+                                @if($task->assignee && $task->assignee->avatar)
+                                    <img src="{{ asset('storage/' . $task->assignee->avatar) }}" class="w-full h-full object-cover">
                                 @else
                                     <i class="ph-fill ph-user text-[10px] text-brand-600"></i>
                                 @endif
@@ -233,7 +233,7 @@
 
             @if($task->status !== 'waiting' && $task->status !== 'completed')
             <div class="mt-8 pt-8 border-t border-slate-200 flex justify-end">
-                <a href="{{ route('kepanitiaan.co.tasks.edit', $task) }}" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all shadow-md flex items-center gap-2">
+                <a href="{{ route('kepanitiaan.co.tasks.edit', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all shadow-md flex items-center gap-2">
                     <i class="ph-bold ph-pencil-simple"></i> Edit Tugas
                 </a>
             </div>
@@ -248,7 +248,7 @@
                  x-transition.opacity 
                  class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
                  
-                 <form action="{{ route('kepanitiaan.co.tasks.review', $task) }}" method="POST">
+                 <form action="{{ route('kepanitiaan.co.tasks.review', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" method="POST">
                      @csrf
                      <input type="hidden" name="status" value="revisi">
                      
@@ -301,7 +301,7 @@
                      <button type="button" @click="acceptModalOpen = false" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                          Batal
                      </button>
-                     <form action="{{ route('kepanitiaan.co.tasks.review', $task) }}" method="POST" class="flex-1">
+                     <form action="{{ route('kepanitiaan.co.tasks.review', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" method="POST" class="flex-1">
                          @csrf
                          <input type="hidden" name="status" value="completed">
                          <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">

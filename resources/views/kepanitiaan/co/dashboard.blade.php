@@ -230,7 +230,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->where('status', 'todo') as $task)
-                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'" title="Klik untuk edit tugas">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-600 shrink-0">
@@ -260,7 +260,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->whereIn('status', ['waiting', 'revisi']) as $task)
-                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'" title="Klik untuk edit tugas">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'" title="Klik untuk edit tugas">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-[9px] font-bold shrink-0">
@@ -297,7 +297,7 @@
                                             </div>
                                             <div class="space-y-3 flex-1">
                                                 @foreach($tasks->where('status', 'completed') as $task)
-                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', $task->id) }}'">
+                                                <div x-show="matchesFilters('{{ $task->assigned_to }}', '{{ $task->status }}', '{{ $task->priority }}')" class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'">
                                                     <div class="flex items-center gap-2 mb-2">
                                                         <div class="flex items-start gap-1.5 min-w-0">
                                                             <div class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-[9px] font-bold shrink-0">
@@ -354,7 +354,7 @@
                      </div>
 
                      <div class="p-6 overflow-y-auto">
-                         <form :action="editMode ? '{{ url('kepanitiaan/co/tasks') }}/' + taskId : '{{ route('kepanitiaan.co.tasks.store') }}'" method="POST">
+                         <form :action="editMode ? '{{ url('kepanitiaan/co/events/' . $assignment->event_id . '/divisions/' . $assignment->event_division_id . '/tasks') }}/' + taskId : '{{ route('kepanitiaan.co.tasks.store', ['event' => $assignment->event_id, 'division' => $assignment->event_division_id]) }}'" method="POST">
                              @csrf
                              <template x-if="editMode"><input type="hidden" name="_method" value="PATCH"></template>
                              

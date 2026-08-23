@@ -15,11 +15,45 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
     // API Routes untuk Frontend Dinamis
     Route::get('/api/divisions/{division}/members', [\App\Http\Controllers\Kepengurusan\KadivProkerController::class, 'getDivisionMembers'])->name('kepengurusan.api.divisions.members');
 
+    // Kahim & Wakahim Routes
+    Route::prefix('kahim')->middleware(['role:kahim,wakahim'])->name('kepengurusan.kahim.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\KahimDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/activities', [\App\Http\Controllers\Kepengurusan\KahimDashboardController::class, 'activities'])->name('activities');
+        Route::get('/agendas', [\App\Http\Controllers\Kepengurusan\KahimDashboardController::class, 'agendas'])->name('agendas');
+    });
+
+    // Dewan Penasihat (DP) Routes
+    Route::prefix('dp')->middleware(['role:dp'])->name('kepengurusan.dp.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\DpDashboardController::class, 'index'])->name('dashboard');
+    });
+
     // Sekretaris Routes
-    Route::prefix('sekretaris')->middleware(['role:sekretaris,kahim,wakahim,bendahara'])->name('kepengurusan.sekretaris.')->group(function () {
+    Route::prefix('sekretaris')->middleware(['role:sekretaris,kahim,wakahim'])->name('kepengurusan.sekretaris.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\SekretarisDashboardController::class, 'index'])->name('dashboard');
-        // Data Pengurus routes are moved to Super Admin.
-        // Directory route will be added soon.
+        Route::get('/arsip-surat', [\App\Http\Controllers\Kepengurusan\Sekretaris\ArsipSuratController::class, 'index'])->name('arsip_surat.index');
+        Route::post('/arsip-surat/{letter}/approve', [\App\Http\Controllers\Kepengurusan\Sekretaris\ArsipSuratController::class, 'approve'])->name('arsip_surat.approve');
+        Route::post('/arsip-surat/{letter}/revision', [\App\Http\Controllers\Kepengurusan\Sekretaris\ArsipSuratController::class, 'requestRevision'])->name('arsip_surat.revision');
+        
+        // Himpunan Letters
+        Route::resource('organization-letters', \App\Http\Controllers\Kepengurusan\OrganizationLetterController::class)->except(['create', 'show', 'edit']);
+        // Document Templates
+        Route::resource('templates', \App\Http\Controllers\Kepengurusan\DocumentTemplateController::class)->except(['create', 'show', 'edit']);
+        // Vital Archives
+        Route::resource('archives', \App\Http\Controllers\Kepengurusan\VitalArchiveController::class)->except(['create', 'show', 'edit']);
+        // Meetings
+        Route::resource('meetings', \App\Http\Controllers\Kepengurusan\MeetingController::class)->except(['create', 'edit']);
+        Route::put('meetings/{meeting}/minutes', [\App\Http\Controllers\Kepengurusan\MeetingController::class, 'updateMinutes'])->name('meetings.updateMinutes');
+        Route::put('meetings/{meeting}/attendance', [\App\Http\Controllers\Kepengurusan\MeetingController::class, 'updateAttendance'])->name('meetings.updateAttendance');
+    });
+
+    // Bendahara Routes
+    Route::prefix('bendahara')->middleware(['role:bendahara'])->name('kepengurusan.bendahara.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Kepengurusan\BendaharaDashboardController::class, 'index'])->name('dashboard');
+        
+        // Fitur Kas & Transaksi
+        Route::resource('finances', \App\Http\Controllers\Kepengurusan\FinanceTransactionController::class)->except(['create', 'show', 'edit']);
+        Route::get('/laporan', [\App\Http\Controllers\Kepengurusan\BendaharaDashboardController::class, 'laporan'])->name('laporan');
+        Route::get('/laporan/cetak', [\App\Http\Controllers\Kepengurusan\BendaharaDashboardController::class, 'cetakLaporan'])->name('laporan.cetak');
     });
 
     // Anggota Routes
@@ -54,9 +88,12 @@ Route::prefix('kepengurusan')->middleware(['auth'])->group(function () {
 
     });
 
-    // Messaging Routes (accessible by all authenticated users)
+    // Messages Routes
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Messaging\MessageController::class, 'index'])->name('index');
+        Route::post('/create-channel', [\App\Http\Controllers\Messaging\MessageController::class, 'storeChannel'])->name('channel.store');
+        Route::put('/channel/{channel}/members', [\App\Http\Controllers\Messaging\MessageController::class, 'updateChannelMembers'])->name('channel.update_members');
+        Route::delete('/channel/{channel}', [\App\Http\Controllers\Messaging\MessageController::class, 'destroyChannel'])->name('channel.destroy');
         Route::get('/download/{message}', [\App\Http\Controllers\Messaging\MessageController::class, 'download'])->name('download');
         Route::get('/{channel}', [\App\Http\Controllers\Messaging\MessageController::class, 'show'])->name('show');
         Route::post('/{channel}', [\App\Http\Controllers\Messaging\MessageController::class, 'store'])->name('store');

@@ -58,6 +58,31 @@ Route::prefix('kepanitiaan')->middleware('auth')->group(function () {
         });
     });
 
+    // SEKRETARIS PELAKSANA (Sekpel)
+    Route::prefix('sekpel')->name('kepanitiaan.sekpel.')->middleware('committee.role:sekretaris-pelaksana')->group(function () {
+        // Arsip Surat / Pengajuan Surat ke Sekretaris HIMA
+        Route::get('/events/{event}/letters', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'index'])->name('letters.index');
+        Route::post('/events/{event}/letters', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'store'])->name('letters.store');
+        Route::delete('/events/{event}/letters/{letter}', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'destroy'])->name('letters.destroy');
+
+        // Manajemen Rapat Kepanitiaan
+        Route::resource('events.meetings', App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class)->except(['create', 'edit']);
+        Route::put('/events/{event}/meetings/{meeting}/attendance', [App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class, 'updateAttendance'])->name('events.meetings.attendance');
+        Route::put('/events/{event}/meetings/{meeting}/minutes', [App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class, 'updateMinutes'])->name('events.meetings.minutes');
+    });
+
+    // KETUPEL - Fallback: bisa mengakses pengajuan surat jika tidak ada Sekpel di event tsb
+    Route::prefix('ketupel')->name('kepanitiaan.ketupel.')->middleware('committee.role:ketua-pelaksana,wakil-ketua-pelaksana')->group(function () {
+        Route::get('/events/{event}/letters', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'index'])->name('letters.index');
+        Route::post('/events/{event}/letters', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'store'])->name('letters.store');
+        Route::delete('/events/{event}/letters/{letter}', [App\Http\Controllers\Kepanitiaan\Sekpel\LetterController::class, 'destroy'])->name('letters.destroy');
+
+        // Manajemen Rapat Kepanitiaan (Fallback)
+        Route::resource('events.meetings', App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class)->except(['create', 'edit']);
+        Route::put('/events/{event}/meetings/{meeting}/attendance', [App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class, 'updateAttendance'])->name('events.meetings.attendance');
+        Route::put('/events/{event}/meetings/{meeting}/minutes', [App\Http\Controllers\Kepanitiaan\Sekpel\EventMeetingController::class, 'updateMinutes'])->name('events.meetings.minutes');
+    });
+
     // CO Dashboard
     Route::prefix('co')->name('kepanitiaan.co.')->middleware('committee.role:co-divisi')->group(function () {
         Route::get('/events/{event}/divisions/{division}/dashboard', [CODashboardController::class, 'index'])->name('dashboard');
@@ -67,18 +92,18 @@ Route::prefix('kepanitiaan')->middleware('auth')->group(function () {
         
         // Pengaturan Sprint
         Route::get('/events/{event}/divisions/{division}/sprints', [CODashboardController::class, 'manageSprints'])->name('sprints.index');
-        Route::post('/sprints', [CODashboardController::class, 'storeSprint'])->name('sprints.store');
-        Route::put('/sprints/{sprint}', [CODashboardController::class, 'updateSprint'])->name('sprints.update');
-        Route::delete('/sprints/{sprint}', [CODashboardController::class, 'destroySprint'])->name('sprints.destroy');
+        Route::post('/events/{event}/divisions/{division}/sprints', [CODashboardController::class, 'storeSprint'])->name('sprints.store');
+        Route::put('/events/{event}/divisions/{division}/sprints/{sprint}', [CODashboardController::class, 'updateSprint'])->name('sprints.update');
+        Route::delete('/events/{event}/divisions/{division}/sprints/{sprint}', [CODashboardController::class, 'destroySprint'])->name('sprints.destroy');
         
         // Tugas (Sprint)
         Route::get('/events/{event}/divisions/{division}/tasks/create', [CODashboardController::class, 'createTask'])->name('tasks.create');
-        Route::get('/tasks/{task}', [CODashboardController::class, 'showTask'])->name('tasks.show');
-        Route::get('/tasks/{task}/edit', [CODashboardController::class, 'editTask'])->name('tasks.edit');
-        Route::post('/tasks', [CODashboardController::class, 'storeTask'])->name('tasks.store');
-        Route::patch('/tasks/{task}', [CODashboardController::class, 'updateTask'])->name('tasks.update');
-        Route::post('/tasks/{task}/review', [CODashboardController::class, 'reviewTask'])->name('tasks.review');
-        Route::delete('/tasks/{task}', [CODashboardController::class, 'destroyTask'])->name('tasks.destroy');
+        Route::post('/events/{event}/divisions/{division}/tasks', [CODashboardController::class, 'storeTask'])->name('tasks.store');
+        Route::get('/events/{event}/divisions/{division}/tasks/{task}', [CODashboardController::class, 'showTask'])->name('tasks.show');
+        Route::get('/events/{event}/divisions/{division}/tasks/{task}/edit', [CODashboardController::class, 'editTask'])->name('tasks.edit');
+        Route::patch('/events/{event}/divisions/{division}/tasks/{task}', [CODashboardController::class, 'updateTask'])->name('tasks.update');
+        Route::post('/events/{event}/divisions/{division}/tasks/{task}/review', [CODashboardController::class, 'reviewTask'])->name('tasks.review');
+        Route::delete('/events/{event}/divisions/{division}/tasks/{task}', [CODashboardController::class, 'destroyTask'])->name('tasks.destroy');
 
         // RAB Divisi untuk CO
         Route::get('/events/{event}/divisions/{division}/rab', [App\Http\Controllers\Kepanitiaan\CO\RabController::class, 'index'])->name('rab.index');
@@ -90,7 +115,7 @@ Route::prefix('kepanitiaan')->middleware('auth')->group(function () {
     // Anggota Dashboard
     Route::prefix('anggota')->middleware('committee.role:anggota')->group(function () {
         Route::get('/events/{event}/divisions/{division}/dashboard', [AnggotaDashboardController::class, 'index'])->name('kepanitiaan.anggota.dashboard');
-        Route::get('/tasks/{task}', [AnggotaDashboardController::class, 'show'])->name('kepanitiaan.anggota.tasks.show');
-        Route::patch('/tasks/{task}/status', [AnggotaDashboardController::class, 'updateTaskStatus'])->name('kepanitiaan.anggota.update-status');
+        Route::get('/events/{event}/divisions/{division}/tasks/{task}', [AnggotaDashboardController::class, 'show'])->name('kepanitiaan.anggota.tasks.show');
+        Route::patch('/events/{event}/divisions/{division}/tasks/{task}/status', [AnggotaDashboardController::class, 'updateTaskStatus'])->name('kepanitiaan.anggota.update-status');
     });
 });

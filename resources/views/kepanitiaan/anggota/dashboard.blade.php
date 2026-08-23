@@ -93,7 +93,7 @@
                                 </div>
                                 <div class="space-y-3 flex-1">
                                     @foreach($sprintTasks->where('status', 'todo') as $task)
-                                    <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', $task->id) }}'" title="Klik untuk melihat detail tugas">
+                                    <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer hover:border-brand-300 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'" title="Klik untuk melihat detail tugas">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0
                                                 @if($task->priority === 'high') bg-rose-100 text-rose-700
@@ -152,7 +152,7 @@
                                 </div>
                                 <div class="space-y-3 flex-1">
                                     @foreach($sprintTasks->whereIn('status', ['waiting', 'revisi']) as $task)
-                                    <div class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', $task->id) }}'" title="Klik untuk melihat detail tugas">
+                                    <div class="bg-white border border-blue-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition group relative flex flex-col" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'" title="Klik untuk melihat detail tugas">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0
                                                 @if($task->priority === 'high') bg-rose-100 text-rose-700
@@ -212,7 +212,7 @@
                                 </div>
                                 <div class="space-y-3 flex-1">
                                     @foreach($sprintTasks->where('status', 'completed') as $task)
-                                    <div class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', $task->id) }}'" title="Klik untuk melihat detail tugas">
+                                    <div class="bg-white border border-emerald-100 rounded-lg p-3 shadow-sm cursor-pointer hover:border-emerald-400 hover:shadow-md transition group relative flex flex-col opacity-80 hover:opacity-100" onclick="window.location.href='{{ route('kepanitiaan.anggota.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}'" title="Klik untuk melihat detail tugas">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 shrink-0">
                                                 SELESAI

@@ -15,23 +15,22 @@ class SekretarisDashboardController extends Controller
     {
         $activePeriod = Period::where('is_active', true)->first();
 
-        if (!$activePeriod) {
-            return view('kepengurusan.sekretaris.dashboard', [
-                'totalDivisions' => 0,
-                'totalMembers' => 0,
-                'activePeriod' => null
-            ]);
-        }
-
-        $totalDivisions = Division::where('period_id', $activePeriod->id)->count();
-        $totalMembers = Member::whereHas('division', function ($query) use ($activePeriod) {
-            $query->where('period_id', $activePeriod->id);
-        })->count();
+        $totalSuratMasuk = \App\Models\Kepengurusan\OrganizationLetter::where('type', 'masuk')->count();
+        $totalSuratKeluar = \App\Models\Kepengurusan\OrganizationLetter::where('type', 'keluar')->count();
+        $totalTemplat = \App\Models\Kepengurusan\DocumentTemplate::count();
         
-        $divisions = Division::where('period_id', $activePeriod->id)
-            ->withCount('members')
+        $upcomingMeetings = \App\Models\Kepengurusan\Meeting::whereDate('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->orderBy('time', 'asc')
+            ->take(4)
             ->get();
 
-        return view('kepengurusan.sekretaris.dashboard', compact('activePeriod', 'totalDivisions', 'totalMembers', 'divisions'));
+        return view('kepengurusan.sekretaris.dashboard', compact(
+            'activePeriod', 
+            'totalSuratMasuk', 
+            'totalSuratKeluar', 
+            'totalTemplat',
+            'upcomingMeetings'
+        ));
     }
 }

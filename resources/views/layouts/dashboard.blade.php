@@ -163,16 +163,54 @@
                 <p class="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">{{ $menuTitle }}</p>
                 <div class="space-y-1.5">
                     @if(auth()->user()->global_role !== 'super_admin')
-                    <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('dashboard', 'kepengurusan.kadiv.dashboard', 'kepengurusan.anggota.dashboard', 'kepengurusan.sekretaris.dashboard') ? 'nav-active' : '' }}">
+                    <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('dashboard', 'kepengurusan.kahim.dashboard', 'kepengurusan.dp.dashboard', 'kepengurusan.kadiv.dashboard', 'kepengurusan.anggota.dashboard', 'kepengurusan.sekretaris.dashboard', 'kepengurusan.bendahara.dashboard') ? 'nav-active' : '' }}">
                         <i class="ph-fill ph-squares-four nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                         Dashboard
                     </a>
                     @endif
+
+                    @if(in_array(auth()->user()->global_role, ['kahim', 'wakahim']))
+                    <a href="{{ route('kepengurusan.kahim.activities') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.kahim.activities') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-activity nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Aktivitas Divisi
+                    </a>
+                    <a href="{{ route('kepengurusan.kahim.agendas') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.kahim.agendas') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-calendar-star nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Agenda Himpunan
+                    </a>
+                    @endif
                     
-                    @if(auth()->user()->global_role !== 'super_admin' && auth()->user()->global_role !== 'kadiv' && auth()->user()->global_role !== 'anggota')
-                    <a href="{{ route('kepengurusan.directory.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.directory.*') ? 'nav-active' : '' }}">
-                        <i class="ph-fill ph-address-book nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
-                        Daftar Pengurus
+                    @if(auth()->user()->global_role === 'sekretaris')
+                    <a href="{{ route('kepengurusan.sekretaris.organization-letters.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.sekretaris.organization-letters.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-envelope-simple nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Surat Himpunan
+                    </a>
+                    <a href="{{ route('kepengurusan.sekretaris.templates.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.sekretaris.templates.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-files nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Bank Templat
+                    </a>
+                    <a href="{{ route('kepengurusan.sekretaris.archives.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.sekretaris.archives.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-archive-box nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Arsip Vital
+                    </a>
+                    <a href="{{ route('kepengurusan.sekretaris.meetings.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.sekretaris.meetings.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-users-three nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Manajemen Rapat
+                    </a>
+                    <a href="{{ route('kepengurusan.sekretaris.arsip_surat.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.sekretaris.arsip_surat.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-envelope-open nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Arsip Kepanitiaan
+                    </a>
+                    @endif
+
+                    @if(auth()->user()->global_role === 'bendahara')
+                    <a href="{{ route('kepengurusan.bendahara.finances.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.bendahara.finances.*') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-wallet nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Kas Himasi
+                    </a>
+                    <a href="{{ route('kepengurusan.bendahara.laporan') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepengurusan.bendahara.laporan') ? 'nav-active' : '' }}">
+                        <i class="ph-fill ph-file-text nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                        Laporan Keuangan
                     </a>
                     @endif
 
@@ -255,13 +293,16 @@
                         @foreach($activeCommittees as $committee)
                             @php
                                 $roleSlug = $committee->role->slug;
-                                $isKetupel = in_array($roleSlug, ['ketua-pelaksana', 'wakil-ketua-pelaksana', 'sekretaris-pelaksana']);
+                                $isKetupel = in_array($roleSlug, ['ketua-pelaksana', 'wakil-ketua-pelaksana']);
+                                $isSekpel = $roleSlug === 'sekretaris-pelaksana';
                                 $isBenpel = $roleSlug === 'bendahara-pelaksana';
                                 $isCO = $roleSlug === 'co-divisi';
-                                $roleNameShort = $roleSlug === 'wakil-ketua-pelaksana' ? 'Waketupel' : ($roleSlug === 'sekretaris-pelaksana' ? 'Sekpel' : 'Ketupel');
+                                $roleNameShort = $roleSlug === 'wakil-ketua-pelaksana' ? 'Waketupel' : 'Ketupel';
                                 
                                 if ($isKetupel) {
                                     $groupLabel = $roleNameShort . ' ' . $committee->event->name;
+                                } elseif ($isSekpel) {
+                                    $groupLabel = 'Sekpel ' . $committee->event->name;
                                 } elseif ($isBenpel) {
                                     $groupLabel = 'Benpel ' . $committee->event->name;
                                 } elseif ($isCO) {
@@ -293,6 +334,9 @@
                                 $hasBenpel = $committee->event->committees->contains(function ($c) {
                                     return $c->role && $c->role->slug === 'bendahara-pelaksana';
                                 });
+                                $hasSekpel = $committee->event->committees->contains(function ($c) {
+                                    return $c->role && $c->role->slug === 'sekretaris-pelaksana';
+                                });
                             @endphp
                             <a href="{{ route('kepanitiaan.ketupel.dashboard', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.dashboard') && $isThisEvent ? 'nav-active' : '' }}">
                                 <i class="ph-fill ph-squares-four nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
@@ -312,10 +356,29 @@
                                 RAB Semua Divisi
                             </a>
                             @endif
+                            @if(!$hasSekpel)
+                            <a href="{{ route('kepanitiaan.ketupel.letters.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.letters.*') && $isThisEvent ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-envelope-open nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Arsip Surat
+                            </a>
+                            <a href="{{ route('kepanitiaan.ketupel.events.meetings.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.events.meetings.*') && $isThisEvent ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-users-three nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Manajemen Rapat
+                            </a>
+                            @endif
                             @elseif($isBenpel)
                             <a href="{{ route('kepanitiaan.ketupel.rab.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.ketupel.rab.*') && $isThisEvent ? 'nav-active' : '' }}">
                                 <i class="ph-fill ph-money nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
                                 RAB Semua Divisi
+                            </a>
+                            @elseif($isSekpel)
+                            <a href="{{ route('kepanitiaan.sekpel.events.meetings.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.sekpel.events.meetings.*') && $isThisEvent ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-users-three nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Manajemen Rapat
+                            </a>
+                            <a href="{{ route('kepanitiaan.sekpel.letters.index', ['event' => $committee->event_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.sekpel.letters.*') && $isThisEvent ? 'nav-active' : '' }}">
+                                <i class="ph-fill ph-envelope-open nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
+                                Arsip Surat
                             </a>
                             @elseif($isCO)
                             <a href="{{ route('kepanitiaan.co.dashboard', ['event' => $committee->event_id, 'division' => $committee->event_division_id]) }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('kepanitiaan.co.dashboard') && $isThisEvent && $isThisDiv ? 'nav-active' : '' }}">
@@ -349,11 +412,14 @@
                     <div class="space-y-1.5">
                     {{-- Messaging --}}
                     @php
-                        $totalUnread = \App\Models\Messaging\Channel::whereHas('members', function($q) {
-                            $q->where('user_id', auth()->id());
-                        })->get()->sum(function($ch) {
-                            return $ch->unreadCountFor(auth()->id());
-                        });
+                        $totalUnread = 0;
+                        if (auth()->user()->global_role !== 'super_admin') {
+                            $totalUnread = \App\Models\Messaging\Channel::whereHas('members', function($q) {
+                                $q->where('user_id', auth()->id());
+                            })->get()->sum(function($ch) {
+                                return $ch->unreadCountFor(auth()->id());
+                            });
+                        }
                     @endphp
                     <a href="{{ route('messages.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 {{ request()->routeIs('messages.*') ? 'nav-active' : '' }}">
                         <i class="ph-fill ph-chat-circle-dots nav-icon text-[20px] text-slate-400 shrink-0 transition-colors"></i>
@@ -376,8 +442,8 @@
                 <!-- Profile details -->
                 <div class="flex-1 flex items-center gap-3 min-w-0">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ring-2 ring-white overflow-hidden bg-brand-500 relative">
-                        @if(auth()->user()->avatar && (file_exists(public_path('storage/' . auth()->user()->avatar)) || file_exists(public_path(auth()->user()->avatar))))
-                            <img src="{{ file_exists(public_path('storage/' . auth()->user()->avatar)) ? asset('storage/' . auth()->user()->avatar) : asset(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
                         @else
                             <span class="text-base font-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                         @endif
@@ -429,8 +495,8 @@
                 <div class="relative" x-data="{ userMenuOpen: false }">
                     <button @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-2.5 focus:outline-none hover:bg-slate-50 p-1.5 -mr-1.5 rounded-xl transition-colors">
                         <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm ring-2 ring-slate-100 bg-brand-500 overflow-hidden relative">
-                            @if(auth()->user()->avatar && (file_exists(public_path('storage/' . auth()->user()->avatar)) || file_exists(public_path(auth()->user()->avatar))))
-                                <img src="{{ file_exists(public_path('storage/' . auth()->user()->avatar)) ? asset('storage/' . auth()->user()->avatar) : asset(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
+                            @if(auth()->user()->avatar)
+                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-full h-full object-cover">
                             @else
                                 <span class="text-sm font-bold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                             @endif
@@ -514,6 +580,51 @@
         </main>
     </div>
 
+    {{-- Global Confirm Delete Modal --}}
+    <div id="global-confirm-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm modal-backdrop" onclick="closeModal('global-confirm-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-2xl shadow-xl z-10 flex flex-col">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph-fill ph-warning-circle text-3xl text-red-500"></i>
+                </div>
+                <h3 id="confirm-modal-title" class="text-lg font-black text-slate-900 mb-1">Konfirmasi Hapus</h3>
+                <p id="confirm-modal-message" class="text-sm text-slate-500 mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
+                <div class="flex gap-3 w-full">
+                    <button onclick="closeModal('global-confirm-modal')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors">
+                        Batal
+                    </button>
+                    <form id="confirm-modal-form" method="POST" class="flex-1">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
+                            Ya, Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function confirmDelete(title, message, actionUrl) {
+            document.getElementById('confirm-modal-title').innerText = title;
+            document.getElementById('confirm-modal-message').innerText = message;
+            document.getElementById('confirm-modal-form').action = actionUrl;
+            openModal('global-confirm-modal');
+        }
+    </script>
+    
     @stack('scripts')
 </body>
 </html>

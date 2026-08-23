@@ -68,7 +68,7 @@
                                 <i class="ph ph-pencil-simple text-lg"></i>
                             </button>
                             
-                            <form id="form-delete-sprint-{{ $sprint->id }}" action="{{ route('kepanitiaan.co.sprints.destroy', $sprint->id) }}" method="POST" class="inline-block">
+                            <form id="form-delete-sprint-{{ $sprint->id }}" action="{{ route('kepanitiaan.co.sprints.destroy', ['event' => $event->id, 'division' => $division->id, 'sprint' => $sprint->id]) }}" method="POST" class="inline-block">
                                 @csrf
                                 @method('DELETE')
                                 <button type="button" onclick="confirmDeleteSprint('form-delete-sprint-{{ $sprint->id }}')" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
@@ -156,7 +156,7 @@
 
             openCreateModal() {
                 this.editMode = false;
-                this.formAction = '{{ route('kepanitiaan.co.sprints.store') }}';
+                this.formAction = '{{ route('kepanitiaan.co.sprints.store', ['event' => $event->id, 'division' => $division->id]) }}';
                 
                 this.sprint_number = 1;
                 this.start_date = '';
@@ -167,7 +167,7 @@
 
             openEditModal(id, number, start, end) {
                 this.editMode = true;
-                let baseUrl = '{{ route('kepanitiaan.co.sprints.update', ':id') }}';
+                let baseUrl = '{{ route('kepanitiaan.co.sprints.update', ['event' => $event->id, 'division' => $division->id, 'sprint' => ':id']) }}';
                 this.formAction = baseUrl.replace(':id', id);
                 
                 this.sprint_number = number;

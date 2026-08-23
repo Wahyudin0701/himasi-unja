@@ -47,7 +47,7 @@ class AnggotaDashboardController extends Controller
     /**
      * Menampilkan detail tugas anggota.
      */
-    public function show(WorkTask $task)
+    public function show(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $user = auth()->user();
 
@@ -66,7 +66,7 @@ class AnggotaDashboardController extends Controller
     /**
      * Update status tugas (todo/revisi → waiting)
      */
-    public function updateTaskStatus(Request $request, WorkTask $task)
+    public function updateTaskStatus(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $user = auth()->user();
         

@@ -117,8 +117,8 @@ Route::get('/division/{slug}', function ($slug) {
 Route::get('/dashboard', function () {
     $user = \Illuminate\Support\Facades\Auth::user();
     
-    // Pembina & DP → Dashboard overview
-    if (in_array($user->global_role, ['pembina', 'dp'])) {
+    // Pembina → Dashboard overview
+    if (in_array($user->global_role, ['pembina'])) {
         return redirect()->route('kepengurusan.sekretaris.dashboard');
     }
 
@@ -128,8 +128,20 @@ Route::get('/dashboard', function () {
     }
 
     // Kepengurusan Dashboards
-    if (in_array($user->global_role, ['kahim', 'wakahim', 'sekretaris', 'bendahara'])) {
+    if (in_array($user->global_role, ['kahim', 'wakahim'])) {
+        return redirect()->route('kepengurusan.kahim.dashboard');
+    }
+
+    if ($user->global_role === 'dp') {
+        return redirect()->route('kepengurusan.dp.dashboard');
+    }
+
+    if ($user->global_role === 'sekretaris') {
         return redirect()->route('kepengurusan.sekretaris.dashboard');
+    }
+
+    if ($user->global_role === 'bendahara') {
+        return redirect()->route('kepengurusan.bendahara.dashboard');
     }
     
     if ($user->global_role === 'kadiv') {

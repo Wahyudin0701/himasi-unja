@@ -112,7 +112,7 @@
                         @endphp
                         <div class="inline-flex items-center gap-3.5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
                             @if($proker->pic->avatar)
-                                <img src="{{ file_exists(public_path('storage/' . $proker->pic->avatar)) ? asset('storage/' . $proker->pic->avatar) : asset($proker->pic->avatar) }}" alt="{{ $proker->pic->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm">
+                                <img src="{{ asset('storage/' . $proker->pic->avatar) }}" alt="{{ $proker->pic->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm">
                             @else
                                 <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-black text-sm bg-brand-100 text-brand-700 border border-brand-200">
                                     {{ $picInitials }}
@@ -343,7 +343,7 @@
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="flex items-center gap-2">
                                         @if($log->author && $log->author->avatar)
-                                            <img src="{{ file_exists(public_path('storage/' . $log->author->avatar)) ? asset('storage/' . $log->author->avatar) : asset($log->author->avatar) }}" alt="{{ $log->author->name }}" class="w-6 h-6 rounded-full object-cover">
+                                            <img src="{{ asset('storage/' . $log->author->avatar) }}" alt="{{ $log->author->name }}" class="w-6 h-6 rounded-full object-cover">
                                         @else
                                             <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-[9px] font-bold shrink-0">
                                                 {{ strtoupper(substr($log->author->name ?? '-', 0, 2)) }}

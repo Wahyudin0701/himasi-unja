@@ -101,7 +101,7 @@ class CODashboardController extends Controller
     /**
      * Menyimpan pengaturan sprint (Tambah 1 Sprint).
      */
-    public function storeSprint(Request $request)
+    public function storeSprint(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
         $validated = $request->validate([
             'event_division_id' => 'required|exists:event_divisions,id',
@@ -137,7 +137,7 @@ class CODashboardController extends Controller
     /**
      * Memperbarui sprint.
      */
-    public function updateSprint(Request $request, DivisionSprint $sprint)
+    public function updateSprint(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, DivisionSprint $sprint)
     {
         $validated = $request->validate([
             'sprint_number' => 'required|integer|min:1',
@@ -203,7 +203,7 @@ class CODashboardController extends Controller
     /**
      * Menghapus sprint.
      */
-    public function destroySprint(DivisionSprint $sprint)
+    public function destroySprint(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, DivisionSprint $sprint)
     {
         $user = auth()->user();
         $isCO = $user->eventCommittees()
@@ -231,7 +231,7 @@ class CODashboardController extends Controller
     /**
      * Menampilkan detail tugas.
      */
-    public function showTask(WorkTask $task)
+    public function showTask(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $user = auth()->user();
 
@@ -290,7 +290,7 @@ class CODashboardController extends Controller
     /**
      * Menyimpan tugas baru untuk anggota divisi.
      */
-    public function storeTask(Request $request)
+    public function storeTask(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division)
     {
         $validated = $request->validate([
             'event_id' => 'required|exists:events,id',
@@ -366,7 +366,7 @@ class CODashboardController extends Controller
         return redirect()->route('kepanitiaan.co.dashboard', ['event' => $validated['event_id'], 'division' => $validated['event_division_id']])->with('success', 'Tugas berhasil ditambahkan!');
     }
 
-    public function editTask(WorkTask $task)
+    public function editTask(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $user = auth()->user();
 
@@ -399,7 +399,7 @@ class CODashboardController extends Controller
     /**
      * Memperbarui tugas.
      */
-    public function updateTask(Request $request, WorkTask $task)
+    public function updateTask(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -520,7 +520,7 @@ class CODashboardController extends Controller
     /**
      * CO me-review progres dari anggota (Accept atau Revisi).
      */
-    public function reviewTask(Request $request, WorkTask $task)
+    public function reviewTask(Request $request, \App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $validated = $request->validate([
             'status' => 'required|in:completed,revisi',
@@ -566,7 +566,7 @@ class CODashboardController extends Controller
     /**
      * Menghapus tugas.
      */
-    public function destroyTask(WorkTask $task)
+    public function destroyTask(\App\Models\Kepanitiaan\Event $event, \App\Models\Kepanitiaan\EventDivision $division, WorkTask $task)
     {
         $user = auth()->user();
 

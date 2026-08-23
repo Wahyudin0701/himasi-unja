@@ -25,4 +25,9 @@ class Period extends Model
     {
         return $this->hasMany(Event::class);
     }
+
+    public function financeTransactions()
+    {
+        return $this->hasMany(FinanceTransaction::class);
+    }
 }

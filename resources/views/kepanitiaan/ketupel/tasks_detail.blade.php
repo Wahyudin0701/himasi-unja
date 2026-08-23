@@ -22,8 +22,8 @@
                         <p class="text-[10px] font-bold text-brand-400 uppercase tracking-widest mb-1">Ditugaskan Kepada</p>
                         <div class="flex items-center gap-2 mt-0.5">
                             <div class="w-5 h-5 rounded-full bg-brand-200 flex items-center justify-center shrink-0 overflow-hidden">
-                                @if($task->assignee && $task->assignee->avatar && (file_exists(public_path('storage/' . $task->assignee->avatar)) || file_exists(public_path($task->assignee->avatar))))
-                                    <img src="{{ file_exists(public_path('storage/' . $task->assignee->avatar)) ? asset('storage/' . $task->assignee->avatar) : asset($task->assignee->avatar) }}" class="w-full h-full object-cover">
+                                @if($task->assignee && $task->assignee->avatar)
+                                    <img src="{{ asset('storage/' . $task->assignee->avatar) }}" class="w-full h-full object-cover">
                                 @else
                                     <i class="ph-fill ph-user text-[10px] text-brand-600"></i>
                                 @endif

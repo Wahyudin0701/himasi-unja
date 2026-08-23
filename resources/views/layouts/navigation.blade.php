@@ -35,6 +35,13 @@
         </a>
         @endif
 
+        @if(in_array(auth()->user()->global_role, ['sekretaris', 'kahim', 'wakahim']))
+        <a class="flex items-center px-4 py-3 text-gray-600 {{ request()->routeIs('kepengurusan.sekretaris.arsip_surat.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'hover:bg-gray-50 hover:text-gray-900 transition-all duration-200' }} rounded-xl" href="{{ route('kepengurusan.sekretaris.arsip_surat.index') }}">
+            <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('kepengurusan.sekretaris.arsip_surat.*') ? 'text-indigo-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"></path></svg>
+            <span class="mx-3">Arsip Kepanitiaan</span>
+        </a>
+        @endif
+
         @if(in_array(auth()->user()->global_role, ['super_admin', 'pimpinan', 'kadiv']) || (auth()->user()->divisi && auth()->user()->divisi->nama_divisi === 'BPH'))
         <div class="pt-4 pb-2">
             <div class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">

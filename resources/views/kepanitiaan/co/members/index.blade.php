@@ -227,8 +227,8 @@
                                     {{-- Avatar + Name --}}
                                     <div class="flex items-center gap-3.5 flex-1 min-w-0">
                                         <div class="w-11 h-11 rounded-full bg-brand-100 overflow-hidden shrink-0 flex items-center justify-center relative shadow-inner">
-                                            @if($user->avatar && (file_exists(public_path('storage/' . $user->avatar)) || file_exists(public_path($user->avatar))))
-                                                <img src="{{ file_exists(public_path('storage/' . $user->avatar)) ? asset('storage/' . $user->avatar) : asset($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                            @if($user->avatar)
+                                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                                             @else
                                                 @php
                                                     $words = explode(' ', $user->name);
@@ -337,7 +337,7 @@
                                                         <div class="space-y-2">
                                                             @forelse($colTodo as $task)
                                                                 @php $isOverdue = $task->due_date && \Carbon\Carbon::parse($task->due_date)->endOfDay()->isPast(); @endphp
-                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border {{ $isOverdue ? 'border-rose-200' : 'border-slate-200' }} rounded-xl p-3 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" class="block bg-white border {{ $isOverdue ? 'border-rose-200' : 'border-slate-200' }} rounded-xl p-3 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -376,7 +376,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colWaiting as $task)
-                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-blue-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" class="block bg-white border border-blue-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -412,7 +412,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colRevisi as $task)
-                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-amber-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" class="block bg-white border border-amber-200 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>
@@ -454,7 +454,7 @@
                                                         </div>
                                                         <div class="space-y-2">
                                                             @forelse($colDone as $task)
-                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', $task->id) }}" class="block bg-white border border-emerald-200 rounded-xl p-3 shadow-sm opacity-80 hover:opacity-100 hover:shadow-md transition-all duration-200 group">
+                                                                <a href="{{ request()->routeIs('kepanitiaan.ketupel.*') ? route('kepanitiaan.ketupel.tasks.show', $task->id) : route('kepanitiaan.co.tasks.show', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" class="block bg-white border border-emerald-200 rounded-xl p-3 shadow-sm opacity-80 hover:opacity-100 hover:shadow-md transition-all duration-200 group">
                                                                     <div class="flex items-start justify-between gap-2 mb-2">
                                                                         @if($task->priority == 'high')
                                                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-600 shrink-0">HIGH</span>

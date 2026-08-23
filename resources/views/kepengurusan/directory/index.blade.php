@@ -44,7 +44,7 @@
                          email: '{{ $member->user->email }}',
                          position: '{{ addslashes($member->position_title ?: ($member->orgPosition->name ?? 'Pembina')) }}',
                          identifier_type: 'NIP',
-                         avatar_url: '{{ $member->user->avatar ? (file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar)) : '' }}',
+                         avatar_url: '{{ $member->user->avatar ? asset('storage/' . $member->user->avatar) : '' }}',
                          initial: '{{ strtoupper(substr($member->user->name, 0, 1)) }}',
                          color_class: 'text-emerald-600 bg-emerald-50',
                          text_color_class: 'text-emerald-600'
@@ -56,7 +56,7 @@
 
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0 border border-slate-200">
 
-                                    <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
 
                                 </div>
 
@@ -127,7 +127,7 @@
                          email: '{{ $member->user->email }}',
                          position: '{{ addslashes($member->position_title ?: ($member->orgPosition->name ?? 'Anggota DP')) }}',
                          identifier_type: 'NPM / NIP',
-                         avatar_url: '{{ $member->user->avatar ? (file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar)) : '' }}',
+                         avatar_url: '{{ $member->user->avatar ? asset('storage/' . $member->user->avatar) : '' }}',
                          initial: '{{ strtoupper(substr($member->user->name, 0, 1)) }}',
                          color_class: 'text-amber-600 bg-amber-50',
                          text_color_class: 'text-amber-600'
@@ -139,7 +139,7 @@
 
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0 border border-slate-200">
 
-                                    <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
 
                                 </div>
 
@@ -210,7 +210,7 @@
                          email: '{{ $member->user->email }}',
                          position: '{{ addslashes($member->position_title ?: ($member->orgPosition->name ?? '-')) }}',
                          identifier_type: 'NIM',
-                         avatar_url: '{{ $member->user->avatar ? (file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar)) : '' }}',
+                         avatar_url: '{{ $member->user->avatar ? asset('storage/' . $member->user->avatar) : '' }}',
                          initial: '{{ strtoupper(substr($member->user->name, 0, 1)) }}',
                          color_class: 'text-brand-600 bg-brand-50',
                          text_color_class: 'text-brand-600'
@@ -225,7 +225,7 @@
 
                                 <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0 border border-slate-200">
 
-                                    <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
 
                                 </div>
 
@@ -375,7 +375,7 @@
                                          email: '{{ $leader->user->email }}',
                                          position: '{{ addslashes($leader->position_title ?: ($leader->orgPosition->name ?? '-')) }}',
                                          identifier_type: 'NIM',
-                                         avatar_url: '{{ $leader->user->avatar ? (file_exists(public_path('storage/' . $leader->user->avatar)) ? asset('storage/' . $leader->user->avatar) : asset($leader->user->avatar)) : '' }}',
+                                         avatar_url: '{{ $leader->user->avatar ? asset('storage/' . $leader->user->avatar) : '' }}',
                                          initial: '{{ strtoupper(substr($leader->user->name, 0, 1)) }}',
                                          color_class: 'text-indigo-600 bg-indigo-50',
                                          text_color_class: 'text-indigo-700'
@@ -383,7 +383,7 @@
                                     <div class="flex items-center gap-3 min-w-0">
                                         @if($leader->user->avatar)
                                             <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200">
-                                                <img src="{{ file_exists(public_path('storage/' . $leader->user->avatar)) ? asset('storage/' . $leader->user->avatar) : asset($leader->user->avatar) }}" alt="{{ $leader->user->name }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('storage/' . $leader->user->avatar) }}" alt="{{ $leader->user->name }}" class="w-full h-full object-cover">
                                             </div>
                                         @else
                                             <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm shrink-0">
@@ -434,7 +434,7 @@
                                          email: '{{ $member->user->email }}',
                                          position: '{{ addslashes($member->position_title ?: ($member->orgPosition->name ?? '-')) }}',
                                          identifier_type: 'NIM',
-                                         avatar_url: '{{ $member->user->avatar ? (file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar)) : '' }}',
+                                         avatar_url: '{{ $member->user->avatar ? asset('storage/' . $member->user->avatar) : '' }}',
                                          initial: '{{ strtoupper(substr($member->user->name, 0, 1)) }}',
                                          color_class: 'text-slate-600 bg-slate-100',
                                          text_color_class: 'text-indigo-700'
@@ -443,7 +443,7 @@
                                         <div class="flex items-center gap-3">
                                             @if($member->user->avatar)
                                                 <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-sm">
-                                                    <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                                    <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
                                                 </div>
                                             @else
                                                 <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-xs shrink-0 shadow-sm border border-slate-200">

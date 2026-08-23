@@ -154,7 +154,7 @@
                         <p class="text-sm text-slate-600">Sertakan catatan progres beserta lampiran (jika ada) untuk dilaporkan ke Koordinator.</p>
                     </div>
                     
-                    <form action="{{ route('kepanitiaan.anggota.update-status', $task) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('kepanitiaan.anggota.update-status', ['event' => $task->event_id, 'division' => $task->event_division_id, 'task' => $task->id]) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="status" value="waiting">

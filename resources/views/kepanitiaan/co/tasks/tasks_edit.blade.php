@@ -26,7 +26,7 @@
                     ];
                 })->values() : collect([]);
             @endphp
-            <form action="{{ route('kepanitiaan.co.tasks.update', $task->id) }}" method="POST" enctype="multipart/form-data" x-data="{ 
+            <form action="{{ route('kepanitiaan.co.tasks.update', ['event' => $event->id, 'division' => $division->id, 'task' => $task->id]) }}" method="POST" enctype="multipart/form-data" x-data="{ 
                 selectedSprint: '{{ old('sprint_number', $task->sprint_number) }}',
                 sprints: {{ $sprintsData->toJson() }},
                 dueDate: '{{ old('due_date', $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('Y-m-d') : '') }}',

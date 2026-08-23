@@ -128,7 +128,7 @@
                                     <div class="bg-white rounded-xl border border-slate-200 p-3 flex items-center gap-3 shadow-sm min-w-0">
                                         @if($member->user->avatar)
                                             <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200">
-                                                <img src="{{ file_exists(public_path('storage/' . $member->user->avatar)) ? asset('storage/' . $member->user->avatar) : asset($member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('storage/' . $member->user->avatar) }}" alt="{{ $member->user->name }}" class="w-full h-full object-cover">
                                             </div>
                                         @else
                                             <div class="w-10 h-10 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-black text-sm shrink-0">

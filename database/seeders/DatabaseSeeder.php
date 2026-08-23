@@ -13,6 +13,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Secara otomatis salin direktori foto pengurus ke storage (untuk keperluan hosting/deploy)
+        $sourcePath = public_path('pengurus_hima');
+        $destinationPath = storage_path('app/public/pengurus_hima');
+        
+        if (\Illuminate\Support\Facades\File::exists($sourcePath)) {
+            \Illuminate\Support\Facades\File::copyDirectory($sourcePath, $destinationPath);
+        }
+
         $this->call([
             PeriodSeeder::class,
             OrgPositionSeeder::class,

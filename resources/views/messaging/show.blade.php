@@ -22,13 +22,18 @@
 
 <div class="flex flex-col h-[calc(100vh-180px)] min-h-[400px]" x-data="chatRoom()">
 
+    {{-- Back Navigation --}}
+    <div class="flex justify-end mb-2 px-1">
+        <a href="{{ route('messages.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-brand-600 transition-colors">
+            <i class="ph-bold ph-arrow-left text-xs"></i>
+            <span>Kembali</span>
+        </a>
+    </div>
+
     {{-- ===== TOP BAR ===== --}}
     <div class="bg-white rounded-t-2xl border border-slate-200 border-b-0 shadow-sm px-5 py-4 shrink-0">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-xl {{ $typeMeta['bg'] }} flex items-center justify-center shrink-0">
-                    <i class="ph-fill {{ $typeMeta['icon'] }} text-xl {{ $typeMeta['color'] }}"></i>
-                </div>
                 <div class="min-w-0">
                     <h2 class="text-base font-bold text-slate-900 truncate">{{ $channel->name }}</h2>
                     <div class="flex items-center gap-2 mt-0.5">
@@ -40,31 +45,67 @@
                 </div>
             </div>
 
-            {{-- Members Toggle --}}
-            <button @click="showMembers = !showMembers"
-                    class="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-brand-600 hover:bg-brand-50 px-3 py-2 rounded-xl transition-all duration-200">
-                <i class="ph-bold ph-users text-base"></i>
-                <span>{{ $members->count() }}</span>
-                <i class="ph-bold ph-caret-down text-xs transition-transform duration-200" :class="showMembers && 'rotate-180'"></i>
-            </button>
+            {{-- Simple Members Toggle Icon --}}
+            <div class="flex items-center gap-2">
+                <button @click="showMembers = !showMembers"
+                        class="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600 text-slate-500 transition-all duration-200"
+                        title="Lihat Anggota Channel">
+                    <i class="ph-fill ph-users text-lg"></i>
+                    <span class="text-xs font-semibold">{{ $members->count() }}</span>
+                </button>
+            </div>
         </div>
 
-        {{-- Members List (collapsible) --}}
-        <div x-show="showMembers" x-collapse x-cloak>
-            <div class="mt-4 pt-4 border-t border-slate-100">
-                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Anggota Channel</p>
-                <div class="flex flex-wrap gap-2">
+        {{-- Members Modal --}}
+        <div x-show="showMembers" 
+             style="display: none;"
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" 
+             x-cloak>
+            
+            {{-- Backdrop --}}
+            <div x-show="showMembers" 
+                 x-transition.opacity.duration.300ms
+                 class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                 @click="showMembers = false"></div>
+            
+            {{-- Modal Content --}}
+            <div x-show="showMembers"
+                 x-transition.scale.origin.center.duration.300ms
+                 class="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+                
+                {{-- Modal Header --}}
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="ph-fill ph-users text-brand-500 text-lg"></i>
+                        Anggota Channel ({{ $members->count() }})
+                    </h3>
+                    <button @click="showMembers = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/50 transition-colors">
+                        <i class="ph-bold ph-x text-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Modal Body (Scrollable) --}}
+                <div class="p-6 overflow-y-auto">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @foreach($members as $member)
-                        <div class="inline-flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
-                            <div class="w-7 h-7 rounded-full bg-brand-500 flex items-center justify-center shrink-0">
-                                <span class="text-[10px] font-bold text-white">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                        <div class="flex items-center gap-3 bg-slate-50 rounded-xl p-2.5 border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-200">
+                            @if($member->avatar)
+                                <img src="{{ asset('storage/' . $member->avatar) }}" alt="{{ $member->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm bg-white shrink-0" onerror="this.outerHTML='<div class=\'w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center shrink-0 shadow-sm\'><span class=\'text-[11px] font-bold text-brand-600\'>{{ strtoupper(substr($member->name, 0, 2)) }}</span></div>'">
+                            @else
+                                <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center shrink-0 shadow-sm">
+                                    <span class="text-[11px] font-bold text-brand-600">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                </div>
+                            @endif
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-[12px] font-bold text-slate-700 truncate block">{{ $member->name }}</span>
+                                <span class="text-[10px] font-semibold text-slate-400 truncate block uppercase tracking-wide">{{ str_replace('_', ' ', $member->global_role) }}</span>
                             </div>
-                            <span class="text-xs font-semibold text-slate-700">{{ $member->name }}</span>
                             @if($member->id === auth()->id())
-                                <span class="text-[9px] font-bold text-brand-500 bg-brand-50 px-1.5 py-0.5 rounded-full">Anda</span>
+                                <span class="text-[9px] font-extrabold text-brand-500 bg-brand-50 px-1.5 py-0.5 rounded-md shrink-0">Anda</span>
                             @endif
                         </div>
                     @endforeach
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,11 +152,22 @@
                 @endif
 
                 {{-- Message Bubble --}}
-                <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }} mb-1 group">
+                <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start items-start gap-2.5' }} mb-3 group">
+                    {{-- Profile Avatar (for others) --}}
+                    @if(!$isOwn)
+                        <div class="w-8 h-8 rounded-full flex-shrink-0 bg-brand-500 overflow-hidden ring-1 ring-slate-200 shadow-sm flex items-center justify-center mt-1">
+                            @if($msg->sender && $msg->sender->avatar)
+                                <img src="{{ asset('storage/' . $msg->sender->avatar) }}" alt="" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\'text-xs font-bold text-white\'>{{ strtoupper(substr($msg->sender->name ?? 'U', 0, 1)) }}</span>'">
+                            @else
+                                <span class="text-xs font-bold text-white">{{ strtoupper(substr($msg->sender->name ?? 'U', 0, 1)) }}</span>
+                            @endif
+                        </div>
+                    @endif
+
                     <div class="max-w-[80%] sm:max-w-[70%]">
                         {{-- Sender name (for others) --}}
                         @if(!$isOwn)
-                            <p class="text-[11px] font-semibold text-slate-500 mb-1 ml-3">{{ $msg->sender->name ?? 'Unknown' }}</p>
+                            <p class="text-[11px] font-semibold text-slate-500 mb-1.5 ml-1">{{ $msg->sender->name ?? 'Unknown' }}</p>
                         @endif
 
                         {{-- Bubble --}}
@@ -126,7 +178,19 @@
 
                             {{-- Message body --}}
                             @if($msg->body)
-                                <p class="text-sm font-medium leading-relaxed whitespace-pre-wrap break-words">{{ $msg->body }}</p>
+                                @php
+                                    $escapedBody = e($msg->body);
+                                    // Use dynamic link color based on message ownership (sender vs receiver background)
+                                    $linkColorClass = $isOwn ? 'text-white hover:text-brand-100 underline decoration-white/50 hover:decoration-white' : 'text-brand-600 hover:text-brand-800 underline decoration-brand-600/40 hover:decoration-brand-800';
+                                    
+                                    // Convert http/https URLs into clickable anchor tags
+                                    $linkedBody = preg_replace(
+                                        '/(https?:\/\/[^\s]+)/i',
+                                        '<a href="$1" target="_blank" rel="noopener noreferrer" class="' . $linkColorClass . ' break-all transition-colors">$1</a>',
+                                        $escapedBody
+                                    );
+                                @endphp
+                                <p class="text-sm font-medium leading-relaxed whitespace-pre-wrap break-words">{!! $linkedBody !!}</p>
                             @endif
 
                             {{-- Attachment --}}
@@ -142,23 +206,11 @@
                             @endif
                         </div>
 
-                        {{-- Timestamp & Read receipt --}}
+                        {{-- Timestamp --}}
                         <div class="flex items-center gap-1.5 mt-1 {{ $isOwn ? 'justify-end mr-1' : 'ml-3' }}">
                             <span class="text-[10px] text-slate-400 font-medium">
                                 {{ $msg->created_at->format('H:i') }}
                             </span>
-                            @if($isOwn)
-                                @if($msg->reads && $msg->reads->count() > 0)
-                                    <span class="text-[10px] text-brand-400 font-semibold flex items-center gap-0.5">
-                                        <i class="ph-fill ph-checks text-xs"></i>
-                                        Dibaca {{ $msg->reads->count() }} orang
-                                    </span>
-                                @else
-                                    <span class="text-[10px] text-slate-300 flex items-center gap-0.5">
-                                        <i class="ph-bold ph-check text-xs"></i>
-                                    </span>
-                                @endif
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -178,7 +230,7 @@
         @endif
 
         <form action="{{ route('messages.store', $channel->id) }}" method="POST" enctype="multipart/form-data"
-              class="flex items-end gap-3">
+              class="flex items-start gap-3">
             @csrf
 
             {{-- Attachment button --}}

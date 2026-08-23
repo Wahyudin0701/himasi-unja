@@ -126,7 +126,7 @@
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="flex items-center gap-2">
                                         @if($log->author && $log->author->avatar)
-                                            <img src="{{ file_exists(public_path('storage/' . $log->author->avatar)) ? asset('storage/' . $log->author->avatar) : asset($log->author->avatar) }}" alt="{{ $log->author->name }}" class="w-6 h-6 rounded-full object-cover">
+                                            <img src="{{ asset('storage/' . $log->author->avatar) }}" alt="{{ $log->author->name }}" class="w-6 h-6 rounded-full object-cover">
                                         @else
                                             <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-[9px] font-bold shrink-0">
                                                 {{ strtoupper(substr($log->author->name ?? '-', 0, 2)) }}

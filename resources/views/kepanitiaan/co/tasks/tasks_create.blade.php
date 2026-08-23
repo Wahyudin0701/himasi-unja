@@ -26,7 +26,7 @@
                     ];
                 })->values() : collect([]);
             @endphp
-            <form action="{{ route('kepanitiaan.co.tasks.store') }}" method="POST" enctype="multipart/form-data" x-data="{ 
+            <form action="{{ route('kepanitiaan.co.tasks.store', ['event' => $event->id, 'division' => $division->id]) }}" method="POST" enctype="multipart/form-data" x-data="{ 
                 selectedSprint: '{{ old('sprint_number', '') }}',
                 sprints: {{ $sprintsData->toJson() }},
                 dueDate: '{{ old('due_date', '') }}',
