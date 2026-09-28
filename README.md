@@ -289,15 +289,6 @@ Sistem ini menggunakan **40+ tabel** yang mencakup seluruh kebutuhan operasional
 
 ---
 
-## 👨‍💻 Developer
-
-**Muhammad Wahyudin**
-- GitHub: [@Wahyudin0701](https://github.com/Wahyudin0701)
-
----
-
 ## 📄 Lisensi
 
 Proyek ini dikembangkan untuk keperluan internal HIMASI Universitas Jambi.
-
-Dibangun dengan ❤️ menggunakan [Laravel](https://laravel.com) — The PHP Framework for Web Artisans.
