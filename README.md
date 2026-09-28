@@ -1,59 +1,303 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/logo_himasi.png" alt="Logo HIMASI" width="120">
 </p>
 
-## About Laravel
+<h1 align="center">HIMASI Management System</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <strong>Sistem Informasi Manajemen Himpunan Mahasiswa Sistem Informasi</strong><br>
+  Universitas Jambi
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.2+">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Alpine.js-3.x-8BC0D0?style=for-the-badge&logo=alpine.js&logoColor=white" alt="Alpine.js">
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+<p align="center">
+  <a href="https://himasiunja.freehosting.dev">🌐 Live Demo</a> •
+  <a href="#fitur-utama">✨ Fitur</a> •
+  <a href="#tech-stack">💻 Tech Stack</a> •
+  <a href="#instalasi">🚀 Instalasi</a> •
+  <a href="#role--hak-akses">🔐 Roles</a>
+</p>
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 📸 Preview
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+<p align="center">
+  <img src="public/web-himasi-unja.png" alt="HIMASI Management System - Halaman Beranda" width="100%">
+</p>
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📋 Tentang Proyek
 
-### Premium Partners
+**HIMASI Management System** adalah platform Sistem Informasi Manajemen berbasis web yang dirancang khusus untuk mendigitalisasi dan mengoptimalkan seluruh operasional internal **Himpunan Mahasiswa Sistem Informasi (HIMASI) Universitas Jambi**.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Sistem ini bertindak sebagai pusat kendali (*central hub*) yang menghubungkan seluruh pengurus, divisi, dan kepanitiaan dalam satu ekosistem digital yang terintegrasi — menggantikan proses manual yang tidak efisien dengan alur kerja digital yang terstruktur dan transparan.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## ✨ Fitur Utama
 
-## Code of Conduct
+### 🏛️ Manajemen Kepengurusan
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Struktur Organisasi Dinamis** | Mengelola periode kepengurusan, BPH, Dewan Penasihat, divisi, dan sub-divisi secara fleksibel |
+| **Buku Direktori Anggota** | Direktori lengkap seluruh pengurus aktif dengan pencarian dan filter |
+| **Dashboard Berbasis Peran** | Setiap peran (Kahim, Sekretaris, Bendahara, Kadiv, Anggota) memiliki dashboard khusus |
+| **Profil & Avatar** | Setiap anggota memiliki profil lengkap dengan foto avatar |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 📋 Program Kerja (Proker)
+| Fitur | Deskripsi |
+|-------|-----------|
+| **CRUD Program Kerja** | Kadiv dapat membuat, mengedit, dan mengelola proker divisinya |
+| **Jurnal & Log Kegiatan** | Pencatatan aktivitas dan progres setiap proker secara real-time |
+| **Tracking Progres** | Monitoring status dan persentase penyelesaian proker lintas divisi |
+| **Kolaborasi Lintas Divisi** | Proker dapat melibatkan anggota dari divisi berbeda |
 
-## Security Vulnerabilities
+### 🎪 Manajemen Kepanitiaan (Event)
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Pembuatan Event** | Membuat event/kegiatan dengan struktur kepanitiaan lengkap |
+| **Manajemen Tim** | Ketupel dapat menambah, mengubah, dan menghapus anggota panitia |
+| **Sistem Sprint & Tugas** | CO Divisi dapat membuat sprint dan mendistribusikan tugas ke anggota |
+| **Review & Approval Tugas** | Alur review tugas dari anggota → CO → Ketupel |
+| **RAB (Rancangan Anggaran Biaya)** | Pengelolaan anggaran per divisi kepanitiaan dengan cetak PDF |
+| **Rapat Kepanitiaan** | Pencatatan jadwal rapat, absensi, dan notulensi |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 📝 Kesekretariatan & Arsip
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Surat Organisasi** | Pembuatan dan pengelolaan surat resmi himpunan |
+| **Pengajuan Surat Event** | Alur pengajuan surat dari Sekpel → Sekretaris HIMA dengan approval/revisi |
+| **Template Dokumen** | Penyimpanan dan pengelolaan template dokumen organisasi |
+| **Arsip Vital** | Penyimpanan dokumen-dokumen penting organisasi |
+| **Notulensi Rapat** | Pencatatan hasil rapat beserta daftar hadir |
 
-## License
+### 💰 Keuangan
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Kas & Transaksi** | Pencatatan pemasukan dan pengeluaran kas himpunan |
+| **Laporan Keuangan** | Dashboard ringkasan keuangan dengan visualisasi |
+| **Cetak Laporan PDF** | Export laporan keuangan ke format PDF |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 💬 Messaging
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Channel Group Chat** | Komunikasi internal antar pengurus melalui channel |
+| **File Sharing** | Berbagi file dan dokumen langsung di dalam chat |
+
+### 🌐 Halaman Publik
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Beranda** | Landing page dengan informasi umum HIMASI |
+| **Tentang HIMASI** | Halaman profil organisasi |
+| **Struktur Organisasi** | Tampilan visual struktur kepengurusan aktif beserta foto |
+| **Detail Divisi** | Informasi lengkap setiap divisi dan program kerjanya |
+| **Galeri & Berita** | Dokumentasi kegiatan dan berita terkini |
+
+---
+
+## 💻 Tech Stack
+
+### Backend
+| Teknologi | Versi | Fungsi |
+|-----------|-------|--------|
+| **Laravel** | 12.x | Framework PHP utama (routing, ORM, auth, middleware) |
+| **PHP** | 8.2+ | Bahasa pemrograman server-side |
+| **MySQL** | 8.0 | Sistem manajemen basis data relasional |
+| **Laravel Breeze** | 2.x | Starter kit autentikasi (login, register, reset password) |
+| **DomPDF** | - | Library untuk generate dokumen PDF |
+
+### Frontend
+| Teknologi | Versi | Fungsi |
+|-----------|-------|--------|
+| **Tailwind CSS** | 3.x | Framework CSS utility-first untuk desain responsive |
+| **Alpine.js** | 3.x | Framework JavaScript ringan untuk interaktivitas UI |
+| **Vite** | 7.x | Build tool modern untuk bundling & optimasi aset |
+| **Blade** | - | Template engine bawaan Laravel |
+
+### DevOps & Tools
+| Teknologi | Fungsi |
+|-----------|--------|
+| **Git & GitHub** | Version control & repository hosting |
+| **Composer** | Dependency manager untuk PHP |
+| **NPM** | Dependency manager untuk Node.js |
+| **Pest PHP** | Testing framework |
+
+---
+
+## 🔐 Role & Hak Akses
+
+Sistem ini menerapkan **Role-Based Access Control (RBAC)** dengan peran berlapis:
+
+### Kepengurusan (Organisasi)
+| Role | Akses |
+|------|-------|
+| **Super Admin** | Manajemen periode, anggota, divisi, dan konfigurasi sistem |
+| **Pembina** | Monitoring dan overview seluruh aktivitas organisasi |
+| **Dewan Penasihat (DP)** | Dashboard monitoring dan pemberian arahan |
+| **Ketua Himpunan (Kahim)** | Dashboard eksekutif, monitoring aktivitas dan agenda |
+| **Sekretaris** | Arsip surat, template dokumen, notulensi rapat, arsip vital |
+| **Bendahara** | Manajemen kas, transaksi keuangan, cetak laporan |
+| **Kepala Divisi (Kadiv)** | Manajemen proker divisi, monitoring progres anggota |
+| **Anggota** | Jurnal proker, pengerjaan tugas, akses informasi divisi |
+
+### Kepanitiaan (Event)
+| Role | Akses |
+|------|-------|
+| **Ketua Pelaksana (Ketupel)** | Dashboard event, manajemen tim & divisi, RAB, progres |
+| **Wakil Ketua Pelaksana** | Sama dengan Ketupel |
+| **Sekretaris Pelaksana (Sekpel)** | Pengajuan surat, notulensi rapat kepanitiaan |
+| **Bendahara Pelaksana (Benpel)** | RAB kepanitiaan |
+| **CO Divisi** | Sprint & tugas divisi, RAB divisi, review tugas anggota |
+| **Anggota Panitia** | Pengerjaan tugas, update status |
+
+---
+
+## 🚀 Instalasi
+
+### Prasyarat
+- PHP >= 8.2
+- Composer
+- Node.js >= 18
+- MySQL 8.0
+- Git
+
+### Langkah Instalasi
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Wahyudin0701/himasi-unja.git
+cd himasi-unja
+
+# 2. Install dependensi PHP
+composer install
+
+# 3. Install dependensi Node.js
+npm install
+
+# 4. Salin file konfigurasi
+cp .env.example .env
+
+# 5. Generate application key
+php artisan key:generate
+
+# 6. Konfigurasi database di file .env
+# Sesuaikan DB_DATABASE, DB_USERNAME, dan DB_PASSWORD
+
+# 7. Jalankan migrasi dan seeder
+php artisan migrate --seed
+
+# 8. Buat symbolic link untuk storage
+php artisan storage:link
+
+# 9. Build aset frontend
+npm run build
+
+# 10. Jalankan server development
+php artisan serve
+```
+
+Akses aplikasi di: `http://localhost:8000`
+
+### Menjalankan Development Server (Hot Reload)
+
+```bash
+# Terminal 1: Laravel server
+php artisan serve
+
+# Terminal 2: Vite dev server (untuk hot reload CSS/JS)
+npm run dev
+```
+
+---
+
+## 📂 Struktur Proyek
+
+```
+himasi-unja/
+├── app/
+│   ├── Http/
+│   │   └── Controllers/
+│   │       ├── Kepengurusan/       # Controller kepengurusan (Kahim, Sekretaris, Bendahara, Kadiv, Anggota)
+│   │       ├── Kepanitiaan/        # Controller kepanitiaan (Ketupel, CO, Sekpel, Anggota)
+│   │       ├── Messaging/          # Controller messaging/chat
+│   │       ├── SuperAdmin/         # Controller super admin
+│   │       └── ProfileController   # Controller profil user
+│   ├── Models/
+│   │   ├── Kepengurusan/           # Model: Division, Member, WorkProgram, dll.
+│   │   └── Kepanitiaan/           # Model: Event, EventDivision, EventCommittee, dll.
+│   └── View/                      # View Components
+├── config/                        # Konfigurasi aplikasi
+├── database/
+│   ├── migrations/                # 40+ migration files
+│   └── seeders/                   # Seeder data awal (Periode, Divisi, Jabatan, Proker)
+├── public/                        # Assets publik (gambar, build output)
+├── resources/
+│   ├── css/                       # Tailwind CSS source
+│   ├── js/                        # Alpine.js source
+│   └── views/                     # Blade templates
+├── routes/
+│   ├── web.php                    # Route publik & dashboard redirect
+│   ├── auth.php                   # Route autentikasi (Breeze)
+│   ├── kepengurusan.php           # Route modul kepengurusan
+│   ├── kepanitiaan.php            # Route modul kepanitiaan
+│   ├── super_admin.php            # Route super admin
+│   ├── progress-report.php        # Route progress report
+│   └── arsip.php                  # Route arsip
+├── storage/                       # File upload, cache, logs
+├── .env.example                   # Template konfigurasi environment
+├── composer.json                  # Dependensi PHP
+├── package.json                   # Dependensi Node.js
+├── tailwind.config.js             # Konfigurasi Tailwind CSS
+└── vite.config.js                 # Konfigurasi Vite
+```
+
+---
+
+## 🗄️ Database Schema
+
+Sistem ini menggunakan **40+ tabel** yang mencakup seluruh kebutuhan operasional organisasi:
+
+| Kategori | Tabel |
+|----------|-------|
+| **Kepengurusan** | `periods`, `divisions`, `org_positions`, `users`, `members` |
+| **Program Kerja** | `work_programs`, `proker_logs` |
+| **Kepanitiaan** | `events`, `event_divisions`, `event_committees`, `committee_roles` |
+| **Tugas & Sprint** | `work_tasks`, `division_sprints`, `progress_reports` |
+| **Keuangan** | `finance_transactions`, `rabs` |
+| **Kesekretariatan** | `letters`, `event_letters`, `organization_letters`, `document_templates`, `vital_archives` |
+| **Rapat** | `meetings`, `meeting_attendances`, `event_meetings` |
+| **Event Detail** | `rundowns`, `guests`, `sponsors`, `design_assets`, `certificates` |
+| **Inventaris** | `inventories`, `inventory_loans`, `medical_inventories`, `violations` |
+| **Messaging** | `channels`, `channel_members`, `messages`, `message_reads` |
+| **Sistem** | `cache`, `jobs`, `sessions` |
+
+---
+
+## 🌐 Live Demo
+
+🔗 **[https://himasiunja.freehosting.dev](https://himasiunja.freehosting.dev)**
+
+---
+
+## 👨‍💻 Developer
+
+**Muhammad Wahyudin**
+- GitHub: [@Wahyudin0701](https://github.com/Wahyudin0701)
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dikembangkan untuk keperluan internal HIMASI Universitas Jambi.
+
+Dibangun dengan ❤️ menggunakan [Laravel](https://laravel.com) — The PHP Framework for Web Artisans.
